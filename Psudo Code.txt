@@ -1,0 +1,37 @@
+//Device Logic Psudocode
+
+Activity
+	OnCreate:
+		if starting for the first time:
+			Ask for bluetooth permission
+			Ask for notification permission
+			Display main activity layout
+			Initial data = default data
+		else:
+			Display main activity layout
+			Initial data = last displayed data
+		Check bluetooth permission:
+			if permission not granted:
+				Warn user that the app requires bluetooth
+				while permission not granted:
+					loop here
+		Check bluetooth connection:
+			if bluetooth not turned on:
+				Prompt user to turn on bluetooth
+			else:
+				if no device previously registered:
+					prompt user to pair device
+				else:
+					scan for successful connection with last paired device
+					if not successful:
+						prompt user to pair device
+		
+	onPause:
+		Save screen states
+		Save preset values
+		Background bluetooth connection continues
+		
+	onDestroy:
+		Save screen states
+		Save preset values
+		Background bluetooth connection continues

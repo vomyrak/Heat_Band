@@ -8,6 +8,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,6 +19,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        SeekBar seekbar = (SeekBar) findViewById(R.id.temp_setter);
+        Button[] button = new Button[10];
+        for (int i = 0; i < 10; i++){
+            button[i] = (Button) findViewById(R.id.button + i);
+        }
+        
+
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
