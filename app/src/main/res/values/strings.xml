@@ -4,4 +4,14 @@
     <string name="message_button">Button</string>
     <string name="message_text">Name</string>
     <string name="Mode_3">Mode_3</string>
+    <string name="Mode_2">Mode_2</string>
+    <string name="Mode_1">Mode_1</string>
+    <string name="Apply_Changes">Apply Changes</string>
+    <string name="Select_3">Select</string>
+    <string name="Select_2">Select</string>
+    <string name="Select_1">Select</string>
+
+
+
+
 </resources>
