@@ -3,15 +3,23 @@
     <string name="action_settings">Settings</string>
     <string name="message_button">Button</string>
     <string name="message_text">Name</string>
-    <string name="Mode_3">Mode_3</string>
-    <string name="Mode_2">Mode_2</string>
-    <string name="Mode_1">Mode_1</string>
+    <string name="Mode_3">Mode 3</string>
+    <string name="Mode_2">Mode 2</string>
+    <string name="Mode_1">Mode 1</string>
     <string name="Apply_Changes">Apply Changes</string>
     <string name="Select_3">Select</string>
     <string name="Select_2">Select</string>
     <string name="Select_1">Select</string>
+    <string name="Edit_3">Edit</string>
+    <string name="Edit_2">Edit</string>
+    <string name="Edit_1">Edit</string>
+    <string name="Temperature">Temperature</string>
+    <string name="Temp_Unit">Temperature Unit</string>
+    <string name="Celsius">°C</string>
+    <string name="Fahrenheit">°F</string>
 
-
+    <string name="Battery">Battery</string>
+    <string name="Bluetooth">Bluetooth</string>
 
 
 </resources>
