@@ -21,7 +21,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/battery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
@@ -30,18 +30,8 @@
         app:layout_constraintEnd_toStartOf="@+id/battery_life"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <CheckBox
-        android:id="@+id/checkBox"
-        android:layout_width="wrap_content"
-        android:layout_height="30dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/Bluetooth"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <Button
-        android:id="@+id/button"
+        android:id="@+id/change"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="72dp"
@@ -49,62 +39,62 @@
         android:layout_marginStart="8dp"
         android:text="@string/Apply_Changes"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/button7"
-        app:layout_constraintStart_toStartOf="@+id/textView5" />
+        app:layout_constraintEnd_toEndOf="@+id/edit_3"
+        app:layout_constraintStart_toStartOf="@+id/mode_3" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/select_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:layout_marginEnd="16dp"
         android:text="@string/Select_1"
-        app:layout_constraintBottom_toTopOf="@+id/button4"
-        app:layout_constraintEnd_toStartOf="@+id/button3" />
+        app:layout_constraintBottom_toTopOf="@+id/select_2"
+        app:layout_constraintEnd_toStartOf="@+id/edit_1" />
 
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/edit_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:layout_marginEnd="32dp"
         android:text="@string/Edit_1"
-        app:layout_constraintBottom_toTopOf="@+id/button5"
+        app:layout_constraintBottom_toTopOf="@+id/edit_2"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
-        android:id="@+id/button4"
+        android:id="@+id/select_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:layout_marginEnd="16dp"
         android:text="@string/Select_2"
-        app:layout_constraintBottom_toTopOf="@+id/button6"
-        app:layout_constraintEnd_toStartOf="@+id/button5" />
+        app:layout_constraintBottom_toTopOf="@+id/select_3"
+        app:layout_constraintEnd_toStartOf="@+id/edit_2" />
 
     <Button
-        android:id="@+id/button5"
+        android:id="@+id/edit_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:layout_marginEnd="32dp"
         android:text="@string/Edit_2"
-        app:layout_constraintBottom_toTopOf="@+id/button7"
+        app:layout_constraintBottom_toTopOf="@+id/edit_3"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
-        android:id="@+id/button6"
+        android:id="@+id/select_3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="150dp"
         android:layout_marginEnd="16dp"
         android:text="@string/Select_3"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button7" />
+        app:layout_constraintEnd_toStartOf="@+id/edit_3" />
 
 
     <Button
-        android:id="@+id/button7"
+        android:id="@+id/edit_3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="150dp"
@@ -126,7 +116,7 @@
         android:textOff="@string/Celsius"
         android:textOn="@string/Fahrenheit"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView2"
+        app:layout_constraintStart_toEndOf="@+id/current_temp"
         app:layout_constraintTop_toTopOf="parent" />
 
 
@@ -138,11 +128,11 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="64dp"
         app:layout_constraintEnd_toEndOf="@+id/temp_unit"
-        app:layout_constraintStart_toStartOf="@+id/textView2"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+        app:layout_constraintStart_toStartOf="@+id/current_temp"
+        app:layout_constraintTop_toBottomOf="@+id/current_temp" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/current_temp"
         android:layout_width="176dp"
         android:layout_height="44dp"
         android:layout_marginStart="72dp"
@@ -153,7 +143,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/mode_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="48dp"
@@ -161,12 +151,12 @@
         android:layout_marginStart="32dp"
         android:text="@string/Mode_1"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/textView4"
-        app:layout_constraintEnd_toStartOf="@+id/button2"
+        app:layout_constraintBottom_toTopOf="@+id/mode_2"
+        app:layout_constraintEnd_toStartOf="@+id/select_1"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/mode_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="48dp"
@@ -174,12 +164,12 @@
         android:layout_marginStart="32dp"
         android:text="@string/Mode_2"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/textView5"
-        app:layout_constraintEnd_toStartOf="@+id/button4"
+        app:layout_constraintBottom_toTopOf="@+id/mode_3"
+        app:layout_constraintEnd_toStartOf="@+id/select_2"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/textView5"
+        android:id="@+id/mode_3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="160dp"
@@ -188,7 +178,19 @@
         android:text="@string/Mode_3"
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button6"
+        app:layout_constraintEnd_toStartOf="@+id/select_3"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/bluetooth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/colorPrimaryDark"
+        android:contentDescription="@string/Bluetooth"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/stat_sys_data_bluetooth" />
 
 </android.support.constraint.ConstraintLayout>
