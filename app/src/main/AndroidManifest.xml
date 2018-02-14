@@ -20,8 +20,11 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
-        <activity android:name=".FloatingActivity"></activity>
+        <activity
+            android:name=".FloatingActivity"
+            android:label="Heat Band Floating"></activity>
     </application>
 
 </manifest>
