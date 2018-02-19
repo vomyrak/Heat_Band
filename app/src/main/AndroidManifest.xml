@@ -24,6 +24,7 @@
         </activity>
         <activity
             android:name=".FloatingActivity"
+            android:theme="@style/Theme.AppCompat.Dialog"
             android:label="Heat Band Floating"></activity>
     </application>
 

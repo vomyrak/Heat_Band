@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.icu.util.JapaneseCalendar;
 import android.icu.util.Output;
 import android.os.Bundle;
 import android.sax.StartElementListener;
@@ -12,6 +13,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.view.View;
 import android.view.Menu;
@@ -28,8 +30,12 @@ import android.widget.ToggleButton;
 import org.w3c.dom.Text;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 
 import static java.lang.System.out;
 
@@ -41,9 +47,9 @@ public class MainActivity extends AppCompatActivity {
     //Create (3 preferences + 1 temp) * 3 bytes array for storing temperature info data
     private byte[] stateVal = new byte[12];
     //Create a byte for battery info
-    private byte batteryLife;
+    private byte batteryLife = (byte) 255;
     //Create an integer for seekbar progress;
-    private int seekBarProgress;
+    private int seekBarProgress = 50;
     //Create shared preference
     protected SharedPreferences settings;
     protected SharedPreferences.Editor editor;
@@ -168,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
         editor.putInt(mBatteryLife, (int) batteryLife);
         editor.putInt(mSeekBarProgress, seekBarProgress);
 
+
     }
 
     @Override
@@ -206,5 +213,104 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    //Json Handler
+    public void writeJsonStream(OutputStream out, String a) {
+        try {
+            JsonWriter writer= new JsonWriter(new OutputStreamWriter(out, "utf-8"));
+            writer.setIndent(" ");
+            writer.beginArray();
+            writer.beginObject();
+            writer.name("Current Profile");
+            writer.beginArray();
+            writer.value(stateVal[0]);
+            writer.value(stateVal[1]);
+            writer.value(stateVal[2]);
+            writer.endArray();
+            writer.name("Mode 1");
+            writer.beginArray();
+            writer.value(stateVal[3]);
+            writer.value(stateVal[4]);
+            writer.value(stateVal[5]);
+            writer.endArray();
+            writer.name("Mode 2");
+            writer.beginArray();
+            writer.value(stateVal[6]);
+            writer.value(stateVal[7]);
+            writer.value(stateVal[8]);
+            writer.endArray();
+            writer.name("Mode 3");
+            writer.beginArray();
+            writer.value(stateVal[9]);
+            writer.value(stateVal[10]);
+            writer.value(stateVal[11]);
+            writer.endArray();
+            writer.name("Battery").value(batteryLife);
+            writer.name("Seekbar").value(seekBarProgress);
+            writer.endObject();
+            writer.endArray();
+            writer.close();
+        } catch (Exception e){
+            finish();
+        }
+    }
+    //Json Parser
+    public void readJsonStream(InputStream in){
+        try{
+            JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+            reader.beginArray();
+            reader.beginObject();
+            while (reader.hasNext()){
+                String name = reader.nextName();
+                if (name.equals("Current Profile")){
+                    reader.beginArray();
+                    int index = 0;
+                    while (reader.hasNext()){
+                        stateVal[index] = (byte) reader.nextInt();
+                        index += 1;
+                    }
+                    reader.endArray();
+                }
+                else if (name.equals("Mode 1")){
+                    reader.beginArray();
+                    int index = 3;
+                    while (reader.hasNext()){
+                        stateVal[index] = (byte) reader.nextInt();
+                        index += 1;
+                    }
+                    reader.endArray();
+                }
+                else if (name.equals("Mode 2")){
+                    reader.beginArray();
+                    int index = 6;
+                    while (reader.hasNext()){
+                        stateVal[index] = (byte) reader.nextInt();
+                        index += 1;
+                    }
+                    reader.endArray();
+                }
+                else if (name.equals("Current Profile")){
+                    reader.beginArray();
+                    int index = 9;
+                    while (reader.hasNext()){
+                        stateVal[index] = (byte) reader.nextInt();
+                        index += 1;
+                    }
+                    reader.endArray();
+                }
+                else if (name.equals("Battery")){
+                    batteryLife = (byte) reader.nextInt();
+                }
+                else if (name.equals("Seekbar")){
+                    seekBarProgress = reader.nextInt();
+                }
+            }
+            reader.endObject();
+            reader.endArray();
+            reader.close();
+        } catch (Exception e) {
+            finish();
+        }
     }
 }
