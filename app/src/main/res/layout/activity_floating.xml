@@ -7,4 +7,81 @@
     android:theme="@android:style/Theme.Dialog"
     tools:context="com.example.vomyrak.heatband.FloatingActivity">
 
+    <SeekBar
+        android:id="@+id/set_zone1"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:layout_width="100dp"
+        android:layout_height="24dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="64dp"
+        android:layout_marginTop="8dp"
+        android:max="5"
+        android:progress="3"
+        app:layout_constraintBottom_toBottomOf="@+id/zone1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/zone1" />
+
+    <SeekBar
+        android:id="@+id/set_zone2"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:layout_width="100dp"
+        android:layout_height="24dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="64dp"
+        android:layout_marginTop="8dp"
+        android:max="5"
+        android:progress="3"
+        app:layout_constraintBottom_toBottomOf="@+id/zone2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/zone2" />
+
+    <SeekBar
+        android:id="@+id/set_zone3"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:layout_width="100dp"
+        android:layout_height="24dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="64dp"
+        android:layout_marginTop="8dp"
+        android:max="5"
+        android:progress="3"
+        app:layout_constraintBottom_toBottomOf="@+id/zone3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/zone3" />
+
+    <TextView
+        android:id="@+id/zone1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="64dp"
+        android:layout_marginStart="64dp"
+        android:text="@string/Zone_1"
+        android:textColor="@android:color/black"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/zone2"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/zone2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="64dp"
+        android:layout_marginStart="64dp"
+        android:text="@string/Zone_2"
+        android:textColor="@android:color/black"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/zone3"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/zone3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="200dp"
+        android:layout_marginStart="64dp"
+        android:text="@string/Zone_3"
+        android:textColor="@android:color/black"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </android.support.constraint.ConstraintLayout>

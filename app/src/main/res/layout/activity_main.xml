@@ -12,13 +12,13 @@
         android:id="@+id/battery_life"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:layout_marginTop="16dp"
+        android:layout_height="27dp"
+        android:layout_marginEnd="16dp"
         android:max="10"
         android:progress="8"
+        app:layout_constraintBottom_toBottomOf="@+id/battery"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/battery" />
 
     <TextView
         android:id="@+id/battery"
@@ -27,6 +27,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginTop="16dp"
         android:text="@string/Battery"
+        android:textSize="18sp"
         app:layout_constraintEnd_toStartOf="@+id/battery_life"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -34,90 +35,60 @@
         android:id="@+id/change"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="72dp"
+        android:layout_marginBottom="60dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:text="@string/Apply_Changes"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/edit_3"
-        app:layout_constraintStart_toStartOf="@+id/mode_3" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/select_1"
+        android:id="@+id/mode_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/Select_1"
-        app:layout_constraintBottom_toTopOf="@+id/select_2"
-        app:layout_constraintEnd_toStartOf="@+id/edit_1" />
-
-    <Button
-        android:id="@+id/edit_1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="32dp"
-        android:text="@string/Edit_1"
+        android:layout_marginBottom="28dp"
+        android:layout_marginStart="96dp"
+        android:text="@string/Mode_1"
         app:layout_constraintBottom_toTopOf="@+id/edit_2"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <Button
-        android:id="@+id/select_2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/Select_2"
-        app:layout_constraintBottom_toTopOf="@+id/select_3"
-        app:layout_constraintEnd_toStartOf="@+id/edit_2" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/edit_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="32dp"
-        android:text="@string/Edit_2"
+        android:layout_marginBottom="28dp"
+        android:layout_marginStart="96dp"
+        android:text="@string/Mode_2"
         app:layout_constraintBottom_toTopOf="@+id/edit_3"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <Button
-        android:id="@+id/select_3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="150dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/Select_3"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/edit_3" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 
     <Button
         android:id="@+id/edit_3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="150dp"
-        android:layout_marginEnd="32dp"
-        android:text="@string/Edit_3"
+        android:layout_marginBottom="140dp"
+        android:layout_marginStart="96dp"
+        android:text="@string/Mode_3"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 
     <ToggleButton
         android:id="@+id/temp_unit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="72dp"
+        android:layout_marginEnd="48dp"
 
         android:layout_marginStart="8dp"
-        android:layout_marginTop="72dp"
         android:text="@string/Temp_Unit"
         android:textOff="@string/Celsius"
         android:textOn="@string/Fahrenheit"
+        app:layout_constraintBottom_toBottomOf="@+id/current_temp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/current_temp"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/current_temp" />
 
 
     <SeekBar
@@ -126,8 +97,11 @@
         android:layout_height="20dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="64dp"
+        android:layout_marginTop="16dp"
+        android:max="6"
+        android:progress="3"
         app:layout_constraintEnd_toEndOf="@+id/temp_unit"
+        app:layout_constraintHorizontal_bias="0.476"
         app:layout_constraintStart_toStartOf="@+id/current_temp"
         app:layout_constraintTop_toBottomOf="@+id/current_temp" />
 
@@ -135,51 +109,13 @@
         android:id="@+id/current_temp"
         android:layout_width="176dp"
         android:layout_height="44dp"
-        android:layout_marginStart="72dp"
-        android:layout_marginTop="72dp"
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="100dp"
         android:text="@string/Temperature"
+        android:textColor="@android:color/black"
         android:textSize="30sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/mode_1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="48dp"
-        android:layout_marginEnd="48dp"
-        android:layout_marginStart="32dp"
-        android:text="@string/Mode_1"
-        android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/mode_2"
-        app:layout_constraintEnd_toStartOf="@+id/select_1"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/mode_2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="48dp"
-        android:layout_marginEnd="48dp"
-        android:layout_marginStart="32dp"
-        android:text="@string/Mode_2"
-        android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/mode_3"
-        app:layout_constraintEnd_toStartOf="@+id/select_2"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/mode_3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="160dp"
-        android:layout_marginEnd="48dp"
-        android:layout_marginStart="32dp"
-        android:text="@string/Mode_3"
-        android:textSize="24sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/select_3"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/bluetooth"
@@ -192,5 +128,38 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@android:drawable/stat_sys_data_bluetooth" />
+
+    <Switch
+        android:id="@+id/switch1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="96dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/mode_1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/mode_1" />
+
+    <Switch
+        android:id="@+id/switch2"
+        android:layout_width="wrap_content"
+        android:layout_height="24dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="96dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/edit_2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/edit_2" />
+
+    <Switch
+        android:id="@+id/switch3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="96dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/edit_3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/edit_3" />
 
 </android.support.constraint.ConstraintLayout>
