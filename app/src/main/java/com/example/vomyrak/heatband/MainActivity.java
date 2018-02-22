@@ -1,43 +1,26 @@
 package com.example.vomyrak.heatband;
 
 import android.bluetooth.BluetoothAdapter;
-import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.icu.util.JapaneseCalendar;
-import android.icu.util.Output;
 import android.os.Bundle;
-import android.sax.StartElementListener;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-import org.w3c.dom.Text;
-
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-
-import static java.lang.System.out;
 
 // TODO(1) Re-assignment of widget ids
 // TODO(2) Add a widget to display temperature
@@ -114,14 +97,14 @@ public class MainActivity extends AppCompatActivity {
         toggleButton = (ToggleButton) findViewById(R.id.temp_unit);
         imBluetooth = (ImageView) findViewById(R.id.bluetooth);
         applyChanges = (Button) findViewById(R.id.change);
-        select1 = (Button) findViewById(R.id.select_1);
-        edit1 = (Button) findViewById(R.id.edit_1);
-        select2 = (Button) findViewById(R.id.select_2);
-        edit2 = (Button) findViewById(R.id.edit_2);
-        select3 = (Button) findViewById(R.id.select_3);
-        edit3 = (Button) findViewById(R.id.edit_3);
+        //select1 = (Button) findViewById(R.id.select_1);
+        //edit1 = (Button) findViewById(R.id.edit_1);
+        //select2 = (Button) findViewById(R.id.select_2);
+        //edit2 = (Button) findViewById(R.id.mode_2);
+        //select3 = (Button) findViewById(R.id.select_3);
+        //edit3 = (Button) findViewById(R.id.mode_3);
         //TODO(3) set onClickListeners for all widgets
-        select1.setOnClickListener(new View.OnClickListener() {
+        tvMode1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //OnClick of the button the floating activity is started
