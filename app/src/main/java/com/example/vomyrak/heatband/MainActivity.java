@@ -1,12 +1,25 @@
 package com.example.vomyrak.heatband;
 
+import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ParcelUuid;
+import android.sax.StartElementListener;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.JsonReader;
 import android.util.JsonWriter;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,12 +28,26 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import org.w3c.dom.Text;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.UUID;
+
+import static java.lang.System.out;
 
 // TODO(1) Re-assignment of widget ids
 // TODO(2) Add a widget to display temperature
@@ -59,14 +86,21 @@ public class MainActivity extends AppCompatActivity {
     private static final String mBatteryLife = "batteryLife";
     private static final String mPreferenceFile  = "MyPreferenceFile";
     private static final String mSeekBarProgress = "seekbarProgress";
+    private static final String mJsonFile = "Settings.json";
+    private String DEVICE_ADDRESS;
+    private String DEVICE_NAME;
+
 
     //Create bluetooth adaptor
     private BluetoothAdapter bluetoothAdapter;
+    private BluetoothSocket bluetoothSocket;
+    private BluetoothDevice connectedDevice;
+    private Set<BluetoothDevice> pairedDevices;
+    private static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     //A list of request codes
     protected static final int rRequestBt = 1;
 
-    //On click listener
 
 
     @Override
@@ -74,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         //Initialise app variables and UI elements on creation of application
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null){
-            //If saved intance is present, get value from previously set instance state
+            //If saved instance is present, get value from previously set instance state
             if (savedInstanceState.containsKey(mSettingStateVals)){
                 stateVal = savedInstanceState.getByteArray(mSettingStateVals);
             }
@@ -83,6 +117,25 @@ public class MainActivity extends AppCompatActivity {
             }
             if (savedInstanceState.containsKey(mSeekBarProgress)){
                 seekBarProgress = savedInstanceState.getInt(mSeekBarProgress);
+            }
+        }
+        else{
+            try {
+                File file = new File(mJsonFile);
+                if (file.exists()) {
+                    FileInputStream infile = openFileInput(mJsonFile);
+                    readJsonStream(infile);
+                }
+                else{
+                    //encode default values here;
+                    for (int i = 0; i < stateVal.length; i++){
+                        stateVal[i] = 0;
+                    }
+                    seekBarProgress = 50;
+                    batteryLife = 100;
+                }
+            } catch (Exception e){
+                finish();
             }
         }
 
@@ -109,38 +162,122 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 //OnClick of the button the floating activity is started
                 Intent startFloatingActivity = new Intent(MainActivity.this,  FloatingActivity.class);
+                startFloatingActivity.putExtra(mSettingStateVals, stateVal);
+                startFloatingActivity.putExtra("Mode", 1);
                 MainActivity.this.startActivity(startFloatingActivity);
             }
         });
+        select2.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                try {
+                    Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
+                    bluetoothSocket.getOutputStream().write("j255,0,255 ".toString().getBytes());
+                } catch (Exception e){
+                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+        });
         seekBar.setProgress(seekBarProgress);
         progressBar.setProgress(((int) batteryLife));
+        //Toast.makeText(this, "Create finished", Toast.LENGTH_SHORT).show();
+
+        //Initialise Bluetooth
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null){
+            Toast.makeText(getApplicationContext(), "Bluetooth not supported", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+        if (!bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            this.startActivityForResult(enableBtIntent, rRequestBt);
+        }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        //this.registerReceiver(mReceiver, filter);
+        bluetoothAdapter.startDiscovery();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == rRequestBt){
+            if (resultCode == 0){
+                Toast.makeText(getApplicationContext(), "The user decided to deny bluetooth access", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    private boolean matchedUUID(BluetoothDevice bt){
+        for (ParcelUuid uuid : bt.getUuids()){
+            if (uuid.getUuid() == myUUID){
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        //onStart, UI elements are associated with variables
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        //if (bluetoothAdapter == null) {
-        //bluetooth is not supported
+        pairedDevices = bluetoothAdapter.getBondedDevices();
+        if (pairedDevices.size() > 0){
+            for (BluetoothDevice bt : pairedDevices){
+                if (matchedUUID(bt)) {
+                    DEVICE_ADDRESS = bt.getAddress();
+                    DEVICE_NAME = bt.getName();
 
-        //}
-        try {
-            if (!bluetoothAdapter.isEnabled()) {
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                this.startActivityForResult(enableBtIntent, rRequestBt);
+                }
+                else{
+                    Toast.makeText(getApplicationContext(), "No matched UUID found", Toast.LENGTH_SHORT).show();
+                }
             }
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-            //finish();
         }
+        //onStart, UI elements are associated with variables
     }
+/*
+     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
 
+            String action = intent.getAction();
+            Toast.makeText(getApplicationContext(), "1", Toast.LENGTH_SHORT).show();
+            if (!connectedDevice.ACTION_ACL_CONNECTED.equals(action)) {
+                Toast.makeText(getApplicationContext(), "2", Toast.LENGTH_SHORT).show();
+                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                    Toast.makeText(getApplicationContext(), "3", Toast.LENGTH_SHORT).show();
+                    connectedDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    String deviceName = connectedDevice.getName();
+                    if (deviceName == "HC-05") {
+                        DEVICE_ADDRESS = connectedDevice.getAddress();
+                        DEVICE_NAME = deviceName;
+                        try {
+                            Boolean isBonded = connectedDevice.createBond();
+                            if (isBonded){
+                                Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
+                                bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);//create a RFCOMM (SPP) connection
+                                bluetoothSocket.connect();
+                            }
+                        } catch (Exception e) {
+                            Toast.makeText(getApplicationContext(), "Failed to pair device", Toast.LENGTH_SHORT).show();
+                        }
+                    }
 
-
+                }
+            }
+        }
+    };
+*/
     @Override
     protected void onResume(){
         super.onResume();
+        try {
+            Toast.makeText(getApplicationContext(), "0", Toast.LENGTH_SHORT).show();
+        } catch (Exception e){
+            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
     }
 
     @Override
@@ -152,12 +289,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop(){
         super.onStop();
         //Add shared preference settings
-        settings = getSharedPreferences(mPreferenceFile, 0);
-        editor = settings.edit();
-        editor.putInt(mBatteryLife, (int) batteryLife);
-        editor.putInt(mSeekBarProgress, seekBarProgress);
-
-
+        saveFile(mJsonFile);
     }
 
     @Override
@@ -199,7 +331,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Json Handler
-    public void writeJsonStream(OutputStream out, String a) {
+    public void saveFile(String fileName){
+        try {
+            FileOutputStream file = openFileOutput(fileName, Context.MODE_PRIVATE);
+            writeJsonStream(file);
+            file.close();
+        } catch (Exception e){
+            finish();
+        }
+    }
+    public void loadFile(String fileName){
+        try{
+            FileInputStream file = openFileInput(fileName);
+            readJsonStream(file);
+            file.close();
+        } catch (Exception e){
+            finish();
+        }
+    }
+
+    public void writeJsonStream(OutputStream out) {
         try {
             JsonWriter writer= new JsonWriter(new OutputStreamWriter(out, "utf-8"));
             writer.setIndent(" ");
