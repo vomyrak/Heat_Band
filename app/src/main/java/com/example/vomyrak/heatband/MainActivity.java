@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.startActivity(startFloatingActivity);
             }
         });
-        select2.setOnClickListener(new View.OnClickListener(){
+        tvMode2.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 try {
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
     }
     private boolean matchedUUID(BluetoothDevice bt){
         for (ParcelUuid uuid : bt.getUuids()){
-            if (uuid.getUuid() == myUUID){
+            if (uuid.getUuid().toString().equals(myUUID.toString())) {
                 return true;
             }
         }
@@ -221,19 +221,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        pairedDevices = bluetoothAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0){
-            for (BluetoothDevice bt : pairedDevices){
-                if (matchedUUID(bt)) {
-                    DEVICE_ADDRESS = bt.getAddress();
-                    DEVICE_NAME = bt.getName();
 
-                }
-                else{
-                    Toast.makeText(getApplicationContext(), "No matched UUID found", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
         //onStart, UI elements are associated with variables
     }
 /*
@@ -273,7 +261,28 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume(){
         super.onResume();
         try {
-            Toast.makeText(getApplicationContext(), "0", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Resumed", Toast.LENGTH_SHORT).show();
+            pairedDevices = bluetoothAdapter.getBondedDevices();
+            if (pairedDevices.size() > 0){
+                for (BluetoothDevice bt : pairedDevices){
+                    if (matchedUUID(bt)) {
+                        DEVICE_ADDRESS = bt.getAddress();
+                        DEVICE_NAME = bt.getName();
+                        break;
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(), "No matched UUID found", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                try {
+                    connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
+                    bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
+                    bluetoothSocket.connect();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
         } catch (Exception e){
             Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -288,6 +297,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop(){
         super.onStop();
+        if(bluetoothSocket.isConnected()){
+            try {
+                bluetoothSocket.close();
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+        }
         //Add shared preference settings
         saveFile(mJsonFile);
     }
