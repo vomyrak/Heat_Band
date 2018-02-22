@@ -380,7 +380,8 @@ public class MainActivity extends AppCompatActivity {
             writer.endArray();
             writer.name("Mode 1");
             writer.beginArray();
-            writer.value(stateVal[3]);
+            //writer.value(stateVal[3]);
+            writer.value(100);
             writer.value(stateVal[4]);
             writer.value(stateVal[5]);
             writer.endArray();
