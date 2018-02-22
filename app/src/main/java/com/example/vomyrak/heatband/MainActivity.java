@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.startActivity(startFloatingActivity);
             }
         });
-        select2.setOnClickListener(new View.OnClickListener(){
+        tvMode2.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 try {
@@ -364,7 +364,8 @@ public class MainActivity extends AppCompatActivity {
             writer.endArray();
             writer.name("Mode 1");
             writer.beginArray();
-            writer.value(stateVal[3]);
+            //writer.value(stateVal[3]);
+            writer.value(100);
             writer.value(stateVal[4]);
             writer.value(stateVal[5]);
             writer.endArray();
