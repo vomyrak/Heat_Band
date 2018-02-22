@@ -17,6 +17,7 @@ import android.sax.StartElementListener;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.method.NumberKeyListener;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
@@ -101,7 +102,29 @@ public class MainActivity extends AppCompatActivity {
     //A list of request codes
     protected static final int rRequestBt = 1;
 
-
+    //Timer Function
+    Handler timerHandler = new Handler();
+    Runnable timeRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try{
+                if (bluetoothSocket.isConnected()){
+                    bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
+                }
+            } catch (IOException e){
+                e.printStackTrace();
+            } catch (NullPointerException f){
+                try{
+                    connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
+                    bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
+                    bluetoothSocket.connect();
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+            timerHandler.postDelayed(timeRunnable, 1000 * 5);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -260,38 +283,53 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
-        try {
-            Toast.makeText(getApplicationContext(), "Resumed", Toast.LENGTH_SHORT).show();
-            pairedDevices = bluetoothAdapter.getBondedDevices();
-            if (pairedDevices.size() > 0){
-                for (BluetoothDevice bt : pairedDevices){
-                    if (matchedUUID(bt)) {
-                        DEVICE_ADDRESS = bt.getAddress();
-                        DEVICE_NAME = bt.getName();
-                        break;
+        if (bluetoothSocket == null) {
+            try {
+                Toast.makeText(getApplicationContext(), "Resumed", Toast.LENGTH_SHORT).show();
+                pairedDevices = bluetoothAdapter.getBondedDevices();
+                if (pairedDevices.size() > 0) {
+                    for (BluetoothDevice bt : pairedDevices) {
+                        if (matchedUUID(bt)) {
+                            DEVICE_ADDRESS = bt.getAddress();
+                            DEVICE_NAME = bt.getName();
+                            break;
+                        } else {
+                            Toast.makeText(getApplicationContext(), "No matched UUID found", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                    else{
-                        Toast.makeText(getApplicationContext(), "No matched UUID found", Toast.LENGTH_SHORT).show();
+                    try {
+                        connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
+                        bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
+                        bluetoothSocket.connect();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
+
+
+            } catch (Exception e) {
+                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }
+        else{
+            if(!bluetoothSocket.isConnected()){
                 try {
                     connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
                     bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
                     bluetoothSocket.connect();
-                } catch (IOException e) {
+                } catch (IOException e){
                     e.printStackTrace();
                 }
             }
-
-        } catch (Exception e){
-            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
         }
+        timeRunnable.run();
 
     }
 
     @Override
     protected void onPause(){
         super.onPause();
+        timeRunnable.run();
     }
 
     @Override
