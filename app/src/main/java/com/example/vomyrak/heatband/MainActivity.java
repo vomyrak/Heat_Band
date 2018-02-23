@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelUuid;
 import android.sax.StartElementListener;
 import android.support.design.widget.FloatingActionButton;
@@ -88,43 +89,21 @@ public class MainActivity extends AppCompatActivity {
     private static final String mPreferenceFile  = "MyPreferenceFile";
     private static final String mSeekBarProgress = "seekbarProgress";
     private static final String mJsonFile = "Settings.json";
-    private String DEVICE_ADDRESS;
-    private String DEVICE_NAME;
+    protected static String DEVICE_ADDRESS;
+    protected static String DEVICE_NAME;
 
 
     //Create bluetooth adaptor
-    private BluetoothAdapter bluetoothAdapter;
-    private BluetoothSocket bluetoothSocket;
-    private BluetoothDevice connectedDevice;
-    private Set<BluetoothDevice> pairedDevices;
-    private static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    protected static BluetoothAdapter bluetoothAdapter;
+    protected static BluetoothSocket bluetoothSocket;
+    protected static BluetoothDevice connectedDevice;
+    protected static Set<BluetoothDevice> pairedDevices;
+    protected static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     //A list of request codes
     protected static final int rRequestBt = 1;
 
-    //Timer Function
-    Handler timerHandler = new Handler();
-    Runnable timeRunnable = new Runnable() {
-        @Override
-        public void run() {
-            try{
-                if (bluetoothSocket.isConnected()){
-                    bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
-                }
-            } catch (IOException e){
-                e.printStackTrace();
-            } catch (NullPointerException f){
-                try{
-                    connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
-                    bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
-                    bluetoothSocket.connect();
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-            timerHandler.postDelayed(timeRunnable, 1000 * 5);
-        }
-    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -206,21 +185,10 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setProgress(((int) batteryLife));
         //Toast.makeText(this, "Create finished", Toast.LENGTH_SHORT).show();
 
-        //Initialise Bluetooth
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (bluetoothAdapter == null){
-            Toast.makeText(getApplicationContext(), "Bluetooth not supported", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-        if (!bluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            this.startActivityForResult(enableBtIntent, rRequestBt);
-        }
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
-        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        //this.registerReceiver(mReceiver, filter);
-        bluetoothAdapter.startDiscovery();
+        startService(new Intent(MainActivity.this, MyBtService.class));
+        //startService(serviceIntent);
+
+
     }
 
     @Override
@@ -232,14 +200,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    private boolean matchedUUID(BluetoothDevice bt){
-        for (ParcelUuid uuid : bt.getUuids()){
-            if (uuid.getUuid().toString().equals(myUUID.toString())) {
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     @Override
     protected void onStart() {
@@ -283,65 +244,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
-        if (bluetoothSocket == null) {
-            try {
-                Toast.makeText(getApplicationContext(), "Resumed", Toast.LENGTH_SHORT).show();
-                pairedDevices = bluetoothAdapter.getBondedDevices();
-                if (pairedDevices.size() > 0) {
-                    for (BluetoothDevice bt : pairedDevices) {
-                        if (matchedUUID(bt)) {
-                            DEVICE_ADDRESS = bt.getAddress();
-                            DEVICE_NAME = bt.getName();
-                            break;
-                        } else {
-                            Toast.makeText(getApplicationContext(), "No matched UUID found", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                    try {
-                        connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
-                        bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
-                        bluetoothSocket.connect();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-
-            } catch (Exception e) {
-                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }
-        else{
-            if(!bluetoothSocket.isConnected()){
-                try {
-                    connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
-                    bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
-                    bluetoothSocket.connect();
-                } catch (IOException e){
-                    e.printStackTrace();
-                }
-            }
-        }
-        timeRunnable.run();
 
     }
 
     @Override
     protected void onPause(){
         super.onPause();
-        timeRunnable.run();
     }
 
     @Override
     protected void onStop(){
         super.onStop();
-        if(bluetoothSocket.isConnected()){
-            try {
-                bluetoothSocket.close();
-            } catch (IOException e){
-                e.printStackTrace();
-            }
-        }
+
         //Add shared preference settings
         saveFile(mJsonFile);
     }
