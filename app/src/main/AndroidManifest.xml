@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -19,16 +20,19 @@
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
                 <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
-        
         <activity
             android:name=".FloatingActivity"
-            android:theme="@style/Theme.AppCompat.Dialog"
-            android:label="Heat Band Floating"></activity>
+            android:label="Heat Band Floating"
+            android:theme="@style/Theme.AppCompat.Dialog" />
 
+        <service
+            android:name=".MyBtService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>
