@@ -145,8 +145,6 @@ public class MyBtService extends IntentService {
                         e.printStackTrace();
                     }
                 }
-
-
             } catch (Exception e) {
                 Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
             }

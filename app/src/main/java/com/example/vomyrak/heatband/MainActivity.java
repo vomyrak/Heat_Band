@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view){
                 try {
                     Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
-                    bluetoothSocket.getOutputStream().write("j255,0,255 ".toString().getBytes());
+                    bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
                 } catch (Exception e){
                     Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
