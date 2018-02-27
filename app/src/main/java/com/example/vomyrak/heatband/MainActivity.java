@@ -174,7 +174,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view){
                 try {
                     Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
-                    bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
+                    //bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
+                    bluetoothSocket.getOutputStream().write("j".getBytes());
+                    bluetoothSocket.getOutputStream().write(stateVal[0]);
+                    bluetoothSocket.getOutputStream().write(stateVal[1]);
+                    bluetoothSocket.getOutputStream().write(stateVal[2]);
+                    bluetoothSocket.getOutputStream().write(" ".getBytes());
                 } catch (Exception e){
                     Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
@@ -245,6 +250,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume(){
         super.onResume();
 
+
+        Intent UpdateProgress = getIntent();
+        int mode = UpdateProgress.getIntExtra("Mode", 0);
+        byte NewData[] = UpdateProgress.getByteArrayExtra("New Progress");
+
+        if(mode!=0){
+            int offset = mode * 3;
+            stateVal[offset] = NewData[0];
+            stateVal[offset + 1] = NewData[1];
+            stateVal[offset + 2] = NewData[2];
+        }
     }
 
     @Override
@@ -332,8 +348,7 @@ public class MainActivity extends AppCompatActivity {
             writer.endArray();
             writer.name("Mode 1");
             writer.beginArray();
-            //writer.value(stateVal[3]);
-            writer.value(100);
+            writer.value(stateVal[3]);
             writer.value(stateVal[4]);
             writer.value(stateVal[5]);
             writer.endArray();

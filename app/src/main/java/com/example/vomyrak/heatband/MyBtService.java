@@ -46,7 +46,7 @@ public class MyBtService extends IntentService {
     class MyTimerTask extends TimerTask{
         @Override
         public void run(){
-            timerHandler.post(timeRunnable);
+            //timerHandler.post(timeRunnable);
         }
 
     }
