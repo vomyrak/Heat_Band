@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -14,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelUuid;
+import android.provider.ContactsContract;
 import android.sax.StartElementListener;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -33,8 +35,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -49,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.lang.System.err;
 import static java.lang.System.out;
 
 // TODO(1) Re-assignment of widget ids
@@ -57,11 +64,11 @@ import static java.lang.System.out;
 public class MainActivity extends AppCompatActivity {
 
     //Create (3 preferences + 1 temp) * 3 bytes array for storing temperature info data
-    private byte[] stateVal = new byte[12];
+    protected static byte[] stateVal = new byte[12];
     //Create a byte for battery info
-    private byte batteryLife = (byte) 255;
+    protected static byte batteryLife = (byte) 255;
     //Create an integer for seekbar progress;
-    private int seekBarProgress = 50;
+    protected static int seekBarProgress = 50;
     //Create shared preference
     protected SharedPreferences settings;
     protected SharedPreferences.Editor editor;
@@ -74,21 +81,15 @@ public class MainActivity extends AppCompatActivity {
     protected TextView tvMode3;
     protected ImageView imBluetooth;
     protected Button applyChanges;
-    protected Button select1;
-    protected Button edit1;
-    protected Button select2;
-    protected Button edit2;
-    protected Button select3;
-    protected Button edit3;
     protected ToggleButton toggleButton;
     protected SeekBar seekBar;
 
     //Create constant strings
-    private static final String mSettingStateVals = "stateVals";
-    private static final String mBatteryLife = "batteryLife";
-    private static final String mPreferenceFile  = "MyPreferenceFile";
-    private static final String mSeekBarProgress = "seekbarProgress";
-    private static final String mJsonFile = "Settings.json";
+    protected static final String mSettingStateVals = "stateVals";
+    protected static final String mBatteryLife = "batteryLife";
+    protected static final String mPreferenceFile  = "MyPreferenceFile";
+    protected static final String mSeekBarProgress = "seekbarProgress";
+    protected static final String mJsonFile = "Settings.json";
     protected static String DEVICE_ADDRESS;
     protected static String DEVICE_NAME;
 
@@ -102,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
 
     //A list of request codes
     protected static final int rRequestBt = 1;
+    protected static final int rRequestZoneSetting = 2;
 
 
 
@@ -124,9 +126,10 @@ public class MainActivity extends AppCompatActivity {
         else{
             try {
                 File file = new File(mJsonFile);
+                Log.d("Json Checking", "onCreate: Json FIle READ");
+                Log.d("File InName", file.getName());
                 if (file.exists()) {
-                    FileInputStream infile = openFileInput(mJsonFile);
-                    readJsonStream(infile);
+                    //FileInputStream infile = openFileInput(mJsonFile);
                 }
                 else{
                     //encode default values here;
@@ -152,21 +155,15 @@ public class MainActivity extends AppCompatActivity {
         toggleButton = (ToggleButton) findViewById(R.id.temp_unit);
         imBluetooth = (ImageView) findViewById(R.id.bluetooth);
         applyChanges = (Button) findViewById(R.id.change);
-        //select1 = (Button) findViewById(R.id.select_1);
-        //edit1 = (Button) findViewById(R.id.edit_1);
-        //select2 = (Button) findViewById(R.id.select_2);
-        //edit2 = (Button) findViewById(R.id.mode_2);
-        //select3 = (Button) findViewById(R.id.select_3);
-        //edit3 = (Button) findViewById(R.id.mode_3);
-        //TODO(3) set onClickListeners for all widgets
+        seekBar.setProgress(seekBarProgress);
+        progressBar.setProgress(((int) batteryLife));
         tvMode1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //OnClick of the button the floating activity is started
                 Intent startFloatingActivity = new Intent(MainActivity.this,  FloatingActivity.class);
-                startFloatingActivity.putExtra(mSettingStateVals, stateVal);
                 startFloatingActivity.putExtra("Mode", 1);
-                MainActivity.this.startActivity(startFloatingActivity);
+                MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
             }
         });
         tvMode2.setOnClickListener(new View.OnClickListener(){
@@ -181,14 +178,56 @@ public class MainActivity extends AppCompatActivity {
                     bluetoothSocket.getOutputStream().write(stateVal[2]);
                     bluetoothSocket.getOutputStream().write(" ".getBytes());
                 } catch (Exception e){
-                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
                 }
             }
 
         });
-        seekBar.setProgress(seekBarProgress);
-        progressBar.setProgress(((int) batteryLife));
-        //Toast.makeText(this, "Create finished", Toast.LENGTH_SHORT).show();
+        tvMode3.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                try {
+                        bluetoothSocket.getOutputStream().write("j\n".getBytes());
+
+
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+        applyChanges.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
+                //bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
+                try {
+                    bluetoothSocket.getOutputStream().write("j".getBytes());
+                    bluetoothSocket.getOutputStream().write(stateVal[0]);
+                    bluetoothSocket.getOutputStream().write(stateVal[1]);
+                    bluetoothSocket.getOutputStream().write(stateVal[2]);
+                    bluetoothSocket.getOutputStream().write(" ".getBytes());
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                seekBarProgress = seekBar.getProgress();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
         startService(new Intent(MainActivity.this, MyBtService.class));
         //startService(serviceIntent);
@@ -202,6 +241,11 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == rRequestBt){
             if (resultCode == 0){
                 Toast.makeText(getApplicationContext(), "The user decided to deny bluetooth access", Toast.LENGTH_SHORT).show();
+            }
+        }
+        if (requestCode == rRequestZoneSetting){
+            if (resultCode == RESULT_OK){
+                saveFile();
             }
         }
     }
@@ -249,8 +293,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
-
-
+        loadFile();
         Intent UpdateProgress = getIntent();
         int mode = UpdateProgress.getIntExtra("Mode", 0);
         byte NewData[] = UpdateProgress.getByteArrayExtra("New Progress");
@@ -261,6 +304,7 @@ public class MainActivity extends AppCompatActivity {
             stateVal[offset + 1] = NewData[1];
             stateVal[offset + 2] = NewData[2];
         }
+        ;
     }
 
     @Override
@@ -271,9 +315,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop(){
         super.onStop();
-
+        Log.d("Stop checking", "onStop: Application stoped");
         //Add shared preference settings
-        saveFile(mJsonFile);
+        saveFile();
+
     }
 
     @Override
@@ -315,120 +360,92 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Json Handler
-    public void saveFile(String fileName){
+    public void saveFile(){
         try {
-            FileOutputStream file = openFileOutput(fileName, Context.MODE_PRIVATE);
+            String path = getFilesDir().toString() + mJsonFile;
+            Log.d("Path is", path);
+            FileOutputStream fileOutputStream = new FileOutputStream(path);
+            Log.d("File Exists", "File Exists");
+            DataOutputStream file = new DataOutputStream(fileOutputStream);
             writeJsonStream(file);
             file.close();
         } catch (Exception e){
-            finish();
+            Log.d("Cannot write file", "saveFile: ");
+            e.printStackTrace();
         }
     }
-    public void loadFile(String fileName){
+    public void loadFile(){
         try{
-            FileInputStream file = openFileInput(fileName);
-            readJsonStream(file);
-            file.close();
-        } catch (Exception e){
-            finish();
+            String path = getFilesDir().toString() + mJsonFile;
+            Log.d("Path is", path);
+            FileInputStream fileInputStream = new FileInputStream(path);
+            Log.d("File Exists", "File Exists");
+            DataInputStream dataFile = new DataInputStream(fileInputStream);
+            readJsonStream(dataFile);
+            dataFile.close();
+        } catch (IOException e){
+            Log.d("Writing json", "File not Found ");
+            e.printStackTrace();
         }
     }
 
-    public void writeJsonStream(OutputStream out) {
+    public void writeJsonStream(DataOutputStream out) {
         try {
-            JsonWriter writer= new JsonWriter(new OutputStreamWriter(out, "utf-8"));
-            writer.setIndent(" ");
-            writer.beginArray();
-            writer.beginObject();
-            writer.name("Current Profile");
-            writer.beginArray();
-            writer.value(stateVal[0]);
-            writer.value(stateVal[1]);
-            writer.value(stateVal[2]);
-            writer.endArray();
-            writer.name("Mode 1");
-            writer.beginArray();
-            writer.value(stateVal[3]);
-            writer.value(stateVal[4]);
-            writer.value(stateVal[5]);
-            writer.endArray();
-            writer.name("Mode 2");
-            writer.beginArray();
-            writer.value(stateVal[6]);
-            writer.value(stateVal[7]);
-            writer.value(stateVal[8]);
-            writer.endArray();
-            writer.name("Mode 3");
-            writer.beginArray();
-            writer.value(stateVal[9]);
-            writer.value(stateVal[10]);
-            writer.value(stateVal[11]);
-            writer.endArray();
-            writer.name("Battery").value(batteryLife);
-            writer.name("Seekbar").value(seekBarProgress);
-            writer.endObject();
-            writer.endArray();
-            writer.close();
+            Log.d("Writing json", "writeJsonStream: ");
+            JSONObject newObject = new JSONObject();
+            JSONArray newArray = new JSONArray();
+            newArray.put((int)stateVal[0]);
+            newArray.put((int)stateVal[1]);
+            newArray.put((int)stateVal[2]);
+            newObject.put("Current Profile", newArray);
+            newArray = new JSONArray();
+            newArray.put((int)stateVal[3]);
+            newArray.put((int)stateVal[4]);
+            newArray.put((int)stateVal[5]);
+            newObject.put("Mode 1", newArray);
+            newArray = new JSONArray();
+            newArray.put((int)stateVal[6]);
+            newArray.put((int)stateVal[7]);
+            newArray.put((int)stateVal[8]);
+            newObject.put("Mode 2", newArray);
+            newArray = new JSONArray();
+            newArray.put((int)stateVal[9]);
+            newArray.put((int)stateVal[10]);
+            newArray.put((int)stateVal[11]);
+            newObject.put("Mode 3", newArray);
+            newObject.put("Battery", batteryLife);
+            newObject.put("Seekbar", seekBarProgress);
+            String jsonString = newObject.toString();
+            out.writeUTF(jsonString);
         } catch (Exception e){
-            finish();
+            e.printStackTrace();
         }
     }
     //Json Parser
-    public void readJsonStream(InputStream in){
+    public void readJsonStream(DataInputStream in){
         try{
-            JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
-            reader.beginArray();
-            reader.beginObject();
-            while (reader.hasNext()){
-                String name = reader.nextName();
-                if (name.equals("Current Profile")){
-                    reader.beginArray();
-                    int index = 0;
-                    while (reader.hasNext()){
-                        stateVal[index] = (byte) reader.nextInt();
-                        index += 1;
-                    }
-                    reader.endArray();
-                }
-                else if (name.equals("Mode 1")){
-                    reader.beginArray();
-                    int index = 3;
-                    while (reader.hasNext()){
-                        stateVal[index] = (byte) reader.nextInt();
-                        index += 1;
-                    }
-                    reader.endArray();
-                }
-                else if (name.equals("Mode 2")){
-                    reader.beginArray();
-                    int index = 6;
-                    while (reader.hasNext()){
-                        stateVal[index] = (byte) reader.nextInt();
-                        index += 1;
-                    }
-                    reader.endArray();
-                }
-                else if (name.equals("Current Profile")){
-                    reader.beginArray();
-                    int index = 9;
-                    while (reader.hasNext()){
-                        stateVal[index] = (byte) reader.nextInt();
-                        index += 1;
-                    }
-                    reader.endArray();
-                }
-                else if (name.equals("Battery")){
-                    batteryLife = (byte) reader.nextInt();
-                }
-                else if (name.equals("Seekbar")){
-                    seekBarProgress = reader.nextInt();
-                }
-            }
-            reader.endObject();
-            reader.endArray();
-            reader.close();
+            String inputString = in.readUTF();
+            Log.d("Get json", inputString);
+            JSONObject newObject = new JSONObject(inputString);
+            JSONArray newArray = newObject.getJSONArray("Current Profile");
+            stateVal[0] = (byte)newArray.getInt(0) ;
+            stateVal[1] = (byte)newArray.getInt(1) ;
+            stateVal[2] = (byte)newArray.getInt(2) ;
+            newArray = newObject.getJSONArray("Mode 1");
+            stateVal[3] = (byte)newArray.getInt(0) ;
+            stateVal[4] = (byte)newArray.getInt(1) ;
+            stateVal[5] = (byte)newArray.getInt(2) ;
+            newArray = newObject.getJSONArray("Mode 2");
+            stateVal[6] = (byte)newArray.getInt(0) ;
+            stateVal[7] = (byte)newArray.getInt(1) ;
+            stateVal[8] = (byte)newArray.getInt(2) ;
+            newArray = newObject.getJSONArray("Mode 3");
+            stateVal[9] = (byte)newArray.getInt(0) ;
+            stateVal[10] = (byte)newArray.getInt(1) ;
+            stateVal[11] = (byte)newArray.getInt(2) ;
         } catch (Exception e) {
-            finish();
+            e.printStackTrace();
         }
     }
+
 }

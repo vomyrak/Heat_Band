@@ -19,6 +19,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -34,14 +38,19 @@ import static com.example.vomyrak.heatband.MainActivity.pairedDevices;
 import static com.example.vomyrak.heatband.MainActivity.rRequestBt;
 
 public class MyBtService extends IntentService {
-
+    private static final String TAG ="MyBtService";
     Looper mServiceLooper;
     Handler mServiceHandler = new Handler();
     private Timer mTimer = null;
+    Queue<String> rxQueue;
+    Queue<byte[]> txQueue;
+    InputStream btIn;
+    OutputStream btOut;
+
+
     public MyBtService() {
         super("MyBtService");
     }
-
     //Timer Function
     class MyTimerTask extends TimerTask{
         @Override
@@ -55,10 +64,13 @@ public class MyBtService extends IntentService {
         @Override
         public void run() {
             try{
-
+                byte[] bluetoothReturn = new byte[1024];
                 if (bluetoothSocket.isConnected()){
                     Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
-                    bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
+                    //bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
+                    //sendBtData("j\n".getBytes());
+                    String readMessage = receiveBtData(bluetoothReturn);
+                    Log.d("Incoming data = ", readMessage);
                 }
             } catch (IOException e){
                 e.printStackTrace();
@@ -91,11 +103,11 @@ public class MyBtService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent){
-
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
+
         return START_STICKY;
     }
 
@@ -141,6 +153,9 @@ public class MyBtService extends IntentService {
                         connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
                         bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
                         bluetoothSocket.connect();
+                        bluetoothAdapter.cancelDiscovery();
+                        btIn = bluetoothSocket.getInputStream();
+                        btOut = bluetoothSocket.getOutputStream();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -161,6 +176,19 @@ public class MyBtService extends IntentService {
             }
         }
     }
+    public void sendBtData(byte[] data){
+            try {
+                btOut.write(data);
+            } catch (IOException e){
+                e.printStackTrace();
+            }
 
+    }
+    public String receiveBtData(byte[] buffer) throws IOException, NullPointerException{
+
+            int length = btIn.read(buffer);
+            return new String(buffer, 0, length);
+
+    }
 
 }
