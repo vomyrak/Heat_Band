@@ -215,11 +215,12 @@ public class MainActivity extends AppCompatActivity {
                 bundle.putString(mOutgoingData, "j255,0,255 ");
                 message.setData(bundle);
                 myBtService.writingThread.handler.sendMessage(message);
+                /*
                 try {
                     myBtService.resetBluetooth();
                 } catch (Exception e){
                     e.printStackTrace();
-                }
+                }*/
             }
         });
 

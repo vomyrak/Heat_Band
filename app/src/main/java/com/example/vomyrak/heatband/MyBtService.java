@@ -89,7 +89,11 @@ public class MyBtService extends IntentService {
                     randString += String.valueOf(random.nextInt(255));
                     randString += " ";
                     Log.d("Outgoing data = ", randString);
-                    sendBtData(randString.getBytes());
+                    Bundle outgoingData = new Bundle();
+                    outgoingData.putString(mOutgoingData, randString);
+                    Message messageOut = Message.obtain();
+                    messageOut.setData(outgoingData);
+                    writingThread.handler.sendMessage(messageOut);
                     String readMessage = receiveBtData(bluetoothReturn);
                     if (readMessage.length() != 0){
                         Bundle bufferBundle = new Bundle();
@@ -158,11 +162,11 @@ public class MyBtService extends IntentService {
         btThread = new Thread(new BluetoothThread(startId));
         btThread.run();
         dataThread = new DataThread();
-        dataThread.run();
+        dataThread.start();
         writingThread = new WritingThread();
-        writingThread.run();
-
-
+        writingThread.start();
+        //writingThread = new WritingThread();
+        //writingThread.run();
         return START_STICKY;
     }
 
@@ -234,7 +238,10 @@ public class MyBtService extends IntentService {
     }
     public String receiveBtData(byte[] buffer) throws IOException, NullPointerException{
         if (btIn.available() > 0) {
-            while (btIn.read() != Integer.parseInt("?")){}
+            while (btIn.read() != (int)'?'){
+                Log.d(TAG, String.valueOf(btIn.read()));
+                Log.d(TAG, String.valueOf(Integer.parseInt("?")));
+            }
             int length = btIn.read(buffer);
             return getBtData(new String(buffer, 0, length));
         }
@@ -244,12 +251,17 @@ public class MyBtService extends IntentService {
     }
 
     protected String getBtData(String data){
-        if (data.charAt(data.length() - 1) != "!".charAt(0)){
-           return "";
+        if (data.length() < 3){
+            return "";
         }
-        else{
-            return data.substring(0, data.length() - 1);
+        for (int i = 0; i < data.length(); i++)
+            if (data.charAt(i) != "!".charAt(0)) {
+                char a = data.charAt(i);
+            }
+            else{
+            return data.substring(0, i);
         }
+        return "";
     }
 
     protected void resetBluetooth(){
@@ -313,9 +325,9 @@ public class MyBtService extends IntentService {
         data = data.substring(1);
         String[] dataArray = data.split(",");
         Log.d(TAG, data);
-        return true;
+        //return true;
         // TODO to implement decoding mechanism
-        /*
+
         switch (opcode){
             case 'a':
                 stateVal[3] = (byte)Integer.parseInt(dataArray[0]);
@@ -352,7 +364,6 @@ public class MyBtService extends IntentService {
                 return false;
 
         }
-         */
     }
 
     public class DataThread extends Thread{
