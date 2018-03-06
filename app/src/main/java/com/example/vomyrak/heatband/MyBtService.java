@@ -8,10 +8,13 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.Process;
 import android.os.health.ServiceHealthStats;
@@ -21,55 +24,86 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
+import javax.net.ssl.HandshakeCompletedEvent;
+
 import static com.example.vomyrak.heatband.MainActivity.DEVICE_ADDRESS;
 import static com.example.vomyrak.heatband.MainActivity.DEVICE_NAME;
+import static com.example.vomyrak.heatband.MainActivity.batteryLife;
 import static com.example.vomyrak.heatband.MainActivity.bluetoothAdapter;
 import static com.example.vomyrak.heatband.MainActivity.bluetoothSocket;
 import static com.example.vomyrak.heatband.MainActivity.connectedDevice;
+import static com.example.vomyrak.heatband.MainActivity.mBatteryLife;
 import static com.example.vomyrak.heatband.MainActivity.myUUID;
 import static com.example.vomyrak.heatband.MainActivity.pairedDevices;
+import static com.example.vomyrak.heatband.MainActivity.mOutgoingData;
+
 import static com.example.vomyrak.heatband.MainActivity.rRequestBt;
+import static com.example.vomyrak.heatband.MainActivity.stateVal;
+import static com.example.vomyrak.heatband.MainActivity.tempVal;
 
 public class MyBtService extends IntentService {
-    private static final String TAG ="MyBtService";
-    Looper mServiceLooper;
-    Handler mServiceHandler = new Handler();
-    private Timer mTimer = null;
-    Queue<String> rxQueue;
-    Queue<byte[]> txQueue;
-    InputStream btIn;
-    OutputStream btOut;
+    protected static final String TAG ="MyBtService";
+    private final IBinder mIBinder = new MyBinder();
+    protected InputStream btIn;
+    protected OutputStream btOut;
+    protected Thread btThread;
+    protected DataThread dataThread;
+    protected Handler timerHandler;
+    protected WritingThread writingThread;
 
+    protected static final String mConfig = "Config";
 
-    public MyBtService() {
-        super("MyBtService");
+    protected Random random = new Random();
+    protected String randString;
+    protected class MyBinder extends Binder{
+        MyBtService getService(){return MyBtService.this;}
     }
-    //Timer Function
-    class MyTimerTask extends TimerTask{
-        @Override
-        public void run(){
-            //timerHandler.post(timeRunnable);
+
+    public class BluetoothThread implements Runnable{
+        int serviceId;
+        BluetoothThread(int serviceId){
+            this.serviceId = serviceId;
         }
-
-    }
-    Handler timerHandler = new Handler();
-    Runnable timeRunnable = new Runnable() {
         @Override
         public void run() {
+            timerHandler = new Handler();
             try{
                 byte[] bluetoothReturn = new byte[1024];
                 if (bluetoothSocket.isConnected()){
                     Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
                     //bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
-                    //sendBtData("j\n".getBytes());
+                    randString = "a";
+                    randString += String.valueOf(random.nextInt(255));
+                    randString += ",";
+                    randString += String.valueOf(random.nextInt(255));
+                    randString += ",";
+                    randString += String.valueOf(random.nextInt(255));
+                    randString += " ";
+                    Log.d("Outgoing data = ", randString);
+                    Bundle outgoingData = new Bundle();
+                    outgoingData.putString(mOutgoingData, randString);
+                    Message messageOut = Message.obtain();
+                    messageOut.setData(outgoingData);
+                    writingThread.handler.sendMessage(messageOut);
                     String readMessage = receiveBtData(bluetoothReturn);
+                    if (readMessage.length() != 0){
+                        Bundle bufferBundle = new Bundle();
+                        bufferBundle.putString(mConfig, readMessage);
+                        Message message = Message.obtain();
+                        message.setData(bufferBundle);
+                        dataThread.handler.sendMessage(message);
+                    }
+                    //int length = bluetoothSocket.getInputStream().read(bluetoothReturn);
+                    //String readMessage = new String(bluetoothReturn, 0, length);
                     Log.d("Incoming data = ", readMessage);
                 }
             } catch (IOException e){
@@ -83,13 +117,30 @@ public class MyBtService extends IntentService {
                     e.printStackTrace();
                 }
             }
-            timerHandler.postDelayed(timeRunnable, 1000 * 5);
+            timerHandler.postDelayed(btThread, 1000 * 5);
         }
-    };
+    }
+
+    public MyBtService() {
+        super(TAG);
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        Log.v(TAG, "in onBind");
+        return mIBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.v(TAG, "in OnRebind");
+        return super.onUnbind(intent);
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        Log.v(TAG, "in OnUnbind");
+        super.onRebind(intent);
     }
 
     private boolean matchedUUID(BluetoothDevice bt){
@@ -107,22 +158,23 @@ public class MyBtService extends IntentService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
-
+        Log.v(TAG, "In onstartCommand");
+        btThread = new Thread(new BluetoothThread(startId));
+        btThread.run();
+        dataThread = new DataThread();
+        dataThread.start();
+        writingThread = new WritingThread();
+        writingThread.start();
+        //writingThread = new WritingThread();
+        //writingThread.run();
         return START_STICKY;
     }
 
     @Override
     public void onCreate(){
-        if (mTimer == null){
-            Log.d("Scheduled task", "created");
-            mTimer = new Timer();
-            mTimer.scheduleAtFixedRate(new MyTimerTask(), 0, 5*1000);
-        }
-        HandlerThread thread = new HandlerThread("ServicesStartArguments", Process.THREAD_PRIORITY_BACKGROUND);
-        thread.start();
+        super.onCreate();
+        Log.v(TAG, "in Oncreate");
 
-        mServiceLooper = thread.getLooper();
-        mServiceHandler = new Handler(mServiceLooper);
 
         //Initialise Bluetooth
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -176,19 +228,179 @@ public class MyBtService extends IntentService {
             }
         }
     }
-    public void sendBtData(byte[] data){
-            try {
-                btOut.write(data);
-            } catch (IOException e){
-                e.printStackTrace();
-            }
 
+    public void sendBtData(byte[] data){
+        try {
+            btOut.write(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     public String receiveBtData(byte[] buffer) throws IOException, NullPointerException{
-
+        if (btIn.available() > 0) {
+            while (btIn.read() != (int)'?'){
+                Log.d(TAG, String.valueOf(btIn.read()));
+                Log.d(TAG, String.valueOf(Integer.parseInt("?")));
+            }
             int length = btIn.read(buffer);
-            return new String(buffer, 0, length);
-
+            return getBtData(new String(buffer, 0, length));
+        }
+        else{
+            return "";
+        }
     }
 
+    protected String getBtData(String data){
+        if (data.length() < 3){
+            return "";
+        }
+        for (int i = 0; i < data.length(); i++)
+            if (data.charAt(i) != "!".charAt(0)) {
+                char a = data.charAt(i);
+            }
+            else{
+            return data.substring(0, i);
+        }
+        return "";
+    }
+
+    protected void resetBluetooth(){
+        bluetoothAdapter = null;
+        try {
+            wait(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (!bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            enableBtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getApplicationContext().startActivity(enableBtIntent);
+        }
+
+        if (bluetoothSocket == null) {
+            try {
+                Toast.makeText(getApplicationContext(), "Resumed", Toast.LENGTH_SHORT).show();
+                pairedDevices = bluetoothAdapter.getBondedDevices();
+                if (pairedDevices.size() > 0) {
+                    for (BluetoothDevice bt : pairedDevices) {
+                        if (matchedUUID(bt)) {
+                            DEVICE_ADDRESS = bt.getAddress();
+                            DEVICE_NAME = bt.getName();
+                            break;
+                        } else {
+                            Toast.makeText(getApplicationContext(), "No matched UUID found", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    try {
+                        connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
+                        bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
+                        bluetoothSocket.connect();
+                        bluetoothAdapter.cancelDiscovery();
+                        btIn = bluetoothSocket.getInputStream();
+                        btOut = bluetoothSocket.getOutputStream();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }
+        else{
+            if(!bluetoothSocket.isConnected()){
+                try {
+                    connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
+                    bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
+                    bluetoothSocket.connect();
+                } catch (IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    protected boolean decodeMessage(String data){
+        char opcode = data.charAt(0);
+        data = data.substring(1);
+        String[] dataArray = data.split(",");
+        Log.d(TAG, data);
+        //return true;
+        // TODO to implement decoding mechanism
+
+        switch (opcode){
+            case 'a':
+                stateVal[3] = (byte)Integer.parseInt(dataArray[0]);
+                stateVal[4] = (byte)Integer.parseInt(dataArray[1]);
+                stateVal[5] = (byte)Integer.parseInt(dataArray[2]);
+                return true;
+            case 'b':
+                stateVal[6] = (byte)Integer.parseInt(dataArray[0]);
+                stateVal[7] = (byte)Integer.parseInt(dataArray[1]);
+                stateVal[8] = (byte)Integer.parseInt(dataArray[2]);
+                return true;
+            case 'c':
+                stateVal[9] = (byte)Integer.parseInt(dataArray[0]);
+                stateVal[10] = (byte)Integer.parseInt(dataArray[1]);
+                stateVal[11] = (byte)Integer.parseInt(dataArray[2]);
+                return true;
+            case 'd':
+                // TODO to change mode number
+            case 'e':
+                // TODO to confirm received
+            case 'f':
+                batteryLife = (byte)Integer.parseInt(dataArray[2]);
+                return true;
+            case 'g':
+                tempVal = (byte)Integer.parseInt(dataArray[2]);
+                return true;
+            case 'h':
+                // TODO band switched off
+            case 'i':
+                // TODO band switched on
+            case 'j':
+                // TODO low battery warning
+            default:
+                return false;
+
+        }
+    }
+
+    public class DataThread extends Thread{
+        Handler handler;
+        DataThread(){
+
+        }
+        @Override
+        public void run() {
+            Looper.prepare();
+            handler = new Handler(){
+                @Override
+                public void handleMessage(Message msg) {
+                    String data = msg.getData().getString(mConfig);
+                    boolean decodeSuccess = decodeMessage(data);
+                }
+            };
+            Looper.loop();
+        }
+    }
+
+    public class WritingThread extends Thread{
+        Handler handler;
+
+        WritingThread(){
+        }
+        @Override
+        public void run() {
+            Looper.prepare();
+            handler = new Handler(){
+                @Override
+                public void handleMessage(Message msg) {
+                    String data = msg.getData().getString(mOutgoingData);
+                    sendBtData(data.getBytes());
+                }
+            };
+            Looper.loop();
+        }
+    }
 }
