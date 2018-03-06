@@ -1,41 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/coordinatorLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#9FA8DA"
     tools:context="com.example.vomyrak.heatband.MainActivity">
 
-
-    <ProgressBar
-        android:id="@+id/battery_life"
-        style="?android:attr/progressBarStyleHorizontal"
+    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/current_display"
         android:layout_width="wrap_content"
-        android:layout_height="27dp"
-        android:layout_marginEnd="16dp"
-        android:max="10"
-        android:progress="8"
-        app:layout_constraintBottom_toBottomOf="@+id/battery"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/battery" />
+        android:layout_height="207dp"
+        android:background="#1A237E"
+        tools:context="com.example.vomyrak.heatband.MainActivity"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp">
 
-    <TextView
-        android:id="@+id/battery"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/Battery"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toStartOf="@+id/battery_life"
-        app:layout_constraintTop_toTopOf="parent" />
+
+
+        <com.daimajia.numberprogressbar.NumberProgressBar
+            android:id="@+id/battery_life"
+
+
+            android:layout_width="139dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="48dp"
+
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/current_temp"
+            app:progress_reached_color="@color/batteryColor"
+            app:progress_unreached_color="@color/progressColor"
+            app:progress_text_size="20sp"
+            app:progress_text_color="@color/text"
+            app:progress_text_visibility="visible"
+
+            app:progress_max="10"
+            app:progress_current="8"
+            />
+
+
+        <TextView
+            android:id="@+id/battery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/Battery"
+            android:textColor="?android:attr/colorBackground"
+            android:textSize="18sp"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:layout_editor_absoluteX="88dp" />
+
+
+        <ToggleButton
+            android:id="@+id/temp_unit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="48dp"
+
+            android:layout_marginStart="8dp"
+            android:text="@string/Temp_Unit"
+            android:textOff="@string/Celsius"
+            android:textOn="@string/Fahrenheit"
+            app:layout_constraintBottom_toBottomOf="@+id/current_temp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/current_temp"
+            app:layout_constraintTop_toTopOf="@+id/current_temp" />
+
+
+        <TextView
+            android:id="@+id/current_temp"
+            android:layout_width="176dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="48dp"
+            android:layout_marginTop="100dp"
+            android:text="@string/Temperature"
+            android:textColor="@android:color/background_light"
+            android:textSize="30sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/bt_connected"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@mipmap/ic_bluetooth_connected_white_48dp" />
+
+        <ImageView
+            android:id="@+id/bt_searching"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="92dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintEnd_toStartOf="@+id/battery"
+            app:layout_constraintStart_toEndOf="@+id/bt_connected"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@mipmap/ic_bluetooth_searching_white_48dp" />
+
+        <ImageView
+            android:id="@+id/battery_low"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@mipmap/ic_battery_alert_white_48dp" />
+
+        <ImageView
+            android:id="@+id/battery_charging"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@mipmap/ic_battery_charging_full_white_48dp" />
+
+        <ImageView
+            android:id="@+id/bluetooth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bt_connected"
+            app:srcCompat="@android:drawable/btn_dialog" />
+
+
+    </android.support.constraint.ConstraintLayout>
+
 
     <Button
         android:id="@+id/change"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="60dp"
+        android:layout_marginBottom="40dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:text="@string/Apply_Changes"
@@ -47,7 +158,7 @@
         android:id="@+id/mode_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="28dp"
+        android:layout_marginBottom="20dp"
         android:layout_marginStart="96dp"
         android:text="@string/Mode_1"
         app:layout_constraintBottom_toTopOf="@+id/mode_2"
@@ -57,7 +168,7 @@
         android:id="@+id/mode_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="28dp"
+        android:layout_marginBottom="20dp"
         android:layout_marginStart="96dp"
         android:text="@string/Mode_2"
         app:layout_constraintBottom_toTopOf="@+id/mode_3"
@@ -68,66 +179,28 @@
         android:id="@+id/mode_3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="140dp"
+        android:layout_marginBottom="110dp"
         android:layout_marginStart="96dp"
         android:text="@string/Mode_3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-
-    <ToggleButton
-        android:id="@+id/temp_unit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="48dp"
-
-        android:layout_marginStart="8dp"
-        android:text="@string/Temp_Unit"
-        android:textOff="@string/Celsius"
-        android:textOn="@string/Fahrenheit"
-        app:layout_constraintBottom_toBottomOf="@+id/current_temp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/current_temp"
-        app:layout_constraintTop_toTopOf="@+id/current_temp" />
-
-
-    <SeekBar
+    <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
         android:id="@+id/temp_setter"
         android:layout_width="187dp"
-        android:layout_height="20dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:max="6"
-        android:progress="3"
-        app:layout_constraintEnd_toEndOf="@+id/temp_unit"
-        app:layout_constraintHorizontal_bias="0.476"
-        app:layout_constraintStart_toStartOf="@+id/current_temp"
-        app:layout_constraintTop_toBottomOf="@+id/current_temp" />
+        android:layout_height="30dp"
+        android:layout_marginEnd="60dp"
 
-    <TextView
-        android:id="@+id/current_temp"
-        android:layout_width="176dp"
-        android:layout_height="44dp"
-        android:layout_marginStart="48dp"
-        android:layout_marginTop="100dp"
-        android:text="@string/Temperature"
-        android:textColor="@android:color/black"
-        android:textSize="30sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_marginTop="20dp"
+        app:dsb_indicatorColor="@color/progressColor"
 
-    <ImageView
-        android:id="@+id/bluetooth"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
-        android:background="@color/colorPrimaryDark"
-        android:contentDescription="@string/Bluetooth"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/stat_sys_data_bluetooth" />
+        app:dsb_indicatorTextAppearance="@color/text"
+        app:dsb_max="6"
+        app:dsb_min="0dp"
+        app:dsb_progressColor="@color/progressColor"
+        app:dsb_value="2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/current_display" />
 
     <Switch
         android:id="@+id/switch1"
@@ -162,4 +235,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/mode_3" />
 
+    <TextView
+        android:id="@+id/temp_offset"
+        android:layout_width="59dp"
+        android:layout_height="20dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="60dp"
+        android:text="@string/Temp_offset"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/temp_setter"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/temp_setter" />
+
 </android.support.constraint.ConstraintLayout>
+
+
