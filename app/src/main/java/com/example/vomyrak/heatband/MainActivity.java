@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 try {
-                    myBtService.sendBtData("j\n".getBytes());
+                    myBtService.resetBluetooth();
 
 
                 } catch (Exception e){

@@ -59,6 +59,7 @@ public class MyBtService extends IntentService {
     protected DataThread dataThread;
     protected Handler timerHandler;
     protected WritingThread writingThread;
+    protected Thread listeningThread;
 
     protected static final String mConfig = "Config";
 
@@ -77,7 +78,6 @@ public class MyBtService extends IntentService {
         public void run() {
             timerHandler = new Handler();
             try{
-                byte[] bluetoothReturn = new byte[1024];
                 if (bluetoothSocket.isConnected()){
                     Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
                     //bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
@@ -94,20 +94,7 @@ public class MyBtService extends IntentService {
                     Message messageOut = Message.obtain();
                     messageOut.setData(outgoingData);
                     writingThread.handler.sendMessage(messageOut);
-                    String readMessage = receiveBtData(bluetoothReturn);
-                    if (readMessage.length() != 0){
-                        Bundle bufferBundle = new Bundle();
-                        bufferBundle.putString(mConfig, readMessage);
-                        Message message = Message.obtain();
-                        message.setData(bufferBundle);
-                        dataThread.handler.sendMessage(message);
-                    }
-                    //int length = bluetoothSocket.getInputStream().read(bluetoothReturn);
-                    //String readMessage = new String(bluetoothReturn, 0, length);
-                    Log.d("Incoming data = ", readMessage);
                 }
-            } catch (IOException e){
-                e.printStackTrace();
             } catch (NullPointerException f){
                 try{
                     connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
@@ -161,12 +148,10 @@ public class MyBtService extends IntentService {
         Log.v(TAG, "In onstartCommand");
         btThread = new Thread(new BluetoothThread(startId));
         btThread.run();
-        dataThread = new DataThread();
-        dataThread.start();
+        listeningThread = new Thread(new ListeningThread());
         writingThread = new WritingThread();
+        listeningThread.run();
         writingThread.start();
-        //writingThread = new WritingThread();
-        //writingThread.run();
         return START_STICKY;
     }
 
@@ -240,7 +225,7 @@ public class MyBtService extends IntentService {
         if (btIn.available() > 0) {
             while (btIn.read() != (int)'?'){
                 Log.d(TAG, String.valueOf(btIn.read()));
-                Log.d(TAG, String.valueOf(Integer.parseInt("?")));
+                Log.d(TAG, String.valueOf((int)'?'));
             }
             int length = btIn.read(buffer);
             return getBtData(new String(buffer, 0, length));
@@ -255,9 +240,7 @@ public class MyBtService extends IntentService {
             return "";
         }
         for (int i = 0; i < data.length(); i++)
-            if (data.charAt(i) != "!".charAt(0)) {
-                char a = data.charAt(i);
-            }
+            if (data.charAt(i) != "!".charAt(0)) {}
             else{
             return data.substring(0, i);
         }
@@ -267,7 +250,9 @@ public class MyBtService extends IntentService {
     protected void resetBluetooth(){
         bluetoothAdapter = null;
         try {
-            wait(1000);
+            synchronized (this) {
+                this.wait(1000);
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -324,6 +309,9 @@ public class MyBtService extends IntentService {
         char opcode = data.charAt(0);
         data = data.substring(1);
         String[] dataArray = data.split(",");
+        if (dataArray.length != 3){
+            return false;
+        }
         Log.d(TAG, data);
         //return true;
         // TODO to implement decoding mechanism
@@ -369,7 +357,6 @@ public class MyBtService extends IntentService {
     public class DataThread extends Thread{
         Handler handler;
         DataThread(){
-
         }
         @Override
         public void run() {
@@ -379,12 +366,41 @@ public class MyBtService extends IntentService {
                 public void handleMessage(Message msg) {
                     String data = msg.getData().getString(mConfig);
                     boolean decodeSuccess = decodeMessage(data);
+                    Log.d(TAG, "handleMessage: " + String.valueOf(decodeSuccess));
                 }
             };
             Looper.loop();
         }
     }
 
+    public class ListeningThread implements Runnable{
+        Handler handler = new Handler();
+        ListeningThread(){
+        }
+
+        @Override
+        public void run() {
+                try {
+                    if (!(btIn.available() > 0)){}
+                    else{
+                        byte[] bluetoothReturn = new byte[1024];
+                        String readMessage = receiveBtData(bluetoothReturn);
+                        Log.d(TAG, "GotMessage: " + readMessage);
+
+                        if (readMessage.length() != 0){
+                            boolean decodeSuccess = decodeMessage(readMessage);
+                            Log.d(TAG, "handleMessage: " + String.valueOf(decodeSuccess));
+
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    handler.postDelayed(listeningThread, 500);
+                }
+
+        }
+    }
     public class WritingThread extends Thread{
         Handler handler;
 
