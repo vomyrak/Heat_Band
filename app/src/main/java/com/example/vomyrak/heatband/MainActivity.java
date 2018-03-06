@@ -10,10 +10,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
+import android.os.Message;
 import android.os.ParcelUuid;
 import android.provider.ContactsContract;
 import android.sax.StartElementListener;
@@ -39,6 +42,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -54,6 +58,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
+import com.example.vomyrak.heatband.MyBtService.MyBinder;
 
 import static java.lang.System.err;
 import static java.lang.System.out;
@@ -69,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     protected static byte batteryLife = (byte) 255;
     //Create an integer for seekbar progress;
     protected static int seekBarProgress = 50;
+    protected static byte tempVal = 0;
     //Create shared preference
     protected SharedPreferences settings;
     protected SharedPreferences.Editor editor;
@@ -90,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
     protected static final String mPreferenceFile  = "MyPreferenceFile";
     protected static final String mSeekBarProgress = "seekbarProgress";
     protected static final String mJsonFile = "Settings.json";
+    protected static final String mOutgoingData = "OutgoingData";
     protected static String DEVICE_ADDRESS;
     protected static String DEVICE_NAME;
 
@@ -105,7 +112,9 @@ public class MainActivity extends AppCompatActivity {
     protected static final int rRequestBt = 1;
     protected static final int rRequestZoneSetting = 2;
 
-
+    //Service Related
+    MyBtService myBtService;
+    boolean mServiceBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,12 +180,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view){
                 try {
                     Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
-                    //bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
-                    bluetoothSocket.getOutputStream().write("j".getBytes());
-                    bluetoothSocket.getOutputStream().write(stateVal[0]);
-                    bluetoothSocket.getOutputStream().write(stateVal[1]);
-                    bluetoothSocket.getOutputStream().write(stateVal[2]);
-                    bluetoothSocket.getOutputStream().write(" ".getBytes());
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    outputStream.write("j".getBytes());
+                    outputStream.write(stateVal[0]);
+                    outputStream.write(stateVal[1]);
+                    outputStream.write(stateVal[2]);
+                    outputStream.write(" ".getBytes());
+                    myBtService.sendBtData(outputStream.toByteArray());
                 } catch (Exception e){
                     e.printStackTrace();
                 }
@@ -187,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 try {
-                        bluetoothSocket.getOutputStream().write("j\n".getBytes());
+                    myBtService.sendBtData("j\n".getBytes());
 
 
                 } catch (Exception e){
@@ -200,12 +210,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
                 //bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
+                Message message = Message.obtain();
+                Bundle bundle = new Bundle();
+                bundle.putString(mOutgoingData, "j255,0,255 ");
+                message.setData(bundle);
+                myBtService.writingThread.handler.sendMessage(message);
                 try {
-                    bluetoothSocket.getOutputStream().write("j".getBytes());
-                    bluetoothSocket.getOutputStream().write(stateVal[0]);
-                    bluetoothSocket.getOutputStream().write(stateVal[1]);
-                    bluetoothSocket.getOutputStream().write(stateVal[2]);
-                    bluetoothSocket.getOutputStream().write(" ".getBytes());
+                    myBtService.resetBluetooth();
                 } catch (Exception e){
                     e.printStackTrace();
                 }
@@ -228,10 +239,9 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
-        startService(new Intent(MainActivity.this, MyBtService.class));
-        //startService(serviceIntent);
-
+        Intent intent = new Intent(this, MyBtService.class);
+        startService(intent);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
     }
 
@@ -250,10 +260,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            MyBinder binder = (MyBinder) iBinder;
+            myBtService = binder.getService();
+            mServiceBound = true;
+        }
 
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mServiceBound = false;
+        }
+    };
     @Override
     protected void onStart() {
         super.onStart();
+
 
         //onStart, UI elements are associated with variables
     }
@@ -447,5 +470,8 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
+
+
 
 }
