@@ -35,6 +35,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.daimajia.numberprogressbar.NumberProgressBar;
+
+import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
@@ -73,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
     protected SharedPreferences settings;
     protected SharedPreferences.Editor editor;
     //Create UI elements
-    protected ProgressBar progressBar;
+    protected NumberProgressBar progressBar;
     protected TextView tvBatteryLife;
     protected TextView tvTemperature;
     protected TextView tvMode1;
@@ -82,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
     protected ImageView imBluetooth;
     protected Button applyChanges;
     protected ToggleButton toggleButton;
-    protected SeekBar seekBar;
+    protected DiscreteSeekBar seekBar;
 
     //Create constant strings
     protected static final String mSettingStateVals = "stateVals";
@@ -145,8 +148,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_main);
-        seekBar = (SeekBar) findViewById(R.id.temp_setter);
-        progressBar = (ProgressBar) findViewById(R.id.battery_life);
+        seekBar = (DiscreteSeekBar) findViewById(R.id.temp_setter);
+        progressBar = (NumberProgressBar) findViewById(R.id.battery_life);
         tvBatteryLife = (TextView) findViewById(R.id.battery);
         tvTemperature = (TextView) findViewById(R.id.current_temp);
         tvMode1 = (TextView) findViewById(R.id.mode_1);
@@ -212,24 +215,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+        seekBar.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
                 seekBarProgress = seekBar.getProgress();
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
 
             }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
+            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
 
             }
         });
 
-        startService(new Intent(MainActivity.this, MyBtService.class));
+
+       // startService(new Intent(MainActivity.this, MyBtService.class));
         //startService(serviceIntent);
 
 

@@ -12,6 +12,7 @@
     <string name="Temp_Unit">Temperature Unit</string>
     <string name="Celsius">°C</string>
     <string name="Fahrenheit">°F</string>
+    <string name="Temp_offset">Offset</string>
 
     <string name="Battery">Battery</string>
     <string name="Bluetooth">Bluetooth</string>
