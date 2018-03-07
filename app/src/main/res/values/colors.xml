@@ -3,10 +3,14 @@
     <color name="colorPrimary">#3f51b5</color>
     <color name="colorPrimaryDark">#303f9f</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="text">#FFFFFF</color>
-    <color name="progressColor">#9FA8DA</color>
-    <color name="batteryColor">#FF8F00</color>
+    <color name="text_light">#FFFFFF</color>
+    <color name="text_dark">#4E342E</color>
+    <color name="reached">#1A237E</color>
+    <color name="unreached">#616161</color>
 
-    <color name="floatingColor">#FFECB3</color>
+    <color name="floatingColor">#9fa8da</color>
+    <color name="currentDisplay">#1A237E</color>
+    <color name="background">#E8EAF6</color>
+    <color name="button">#303F9F</color>
 
 </resources>

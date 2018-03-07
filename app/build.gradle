@@ -18,6 +18,11 @@ android {
     }
 }
 
+repositories{
+    maven{url "https://jitpack.io"}
+}
+
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
@@ -30,5 +35,7 @@ dependencies {
 
     compile 'org.adw.library:discrete-seekbar:1.0.1'
     compile 'com.daimajia.numberprogressbar:library:1.4@aar'
+    compile 'com.github.vajro:MaterialDesignLibrary:1.6'
+
 
 }

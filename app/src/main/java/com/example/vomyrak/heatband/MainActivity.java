@@ -62,6 +62,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 import com.example.vomyrak.heatband.MyBtService.MyBinder;
+import com.gc.materialdesign.views.ButtonRectangle;
 
 import static java.lang.System.err;
 import static java.lang.System.out;
@@ -85,11 +86,11 @@ public class MainActivity extends AppCompatActivity {
     protected NumberProgressBar progressBar;
     protected TextView tvBatteryLife;
     protected TextView tvTemperature;
-    protected TextView tvMode1;
-    protected TextView tvMode2;
-    protected TextView tvMode3;
+    protected ButtonRectangle brMode1;
+    protected ButtonRectangle brMode2;
+    protected ButtonRectangle brMode3;
     protected ImageView imBluetooth;
-    protected Button applyChanges;
+    protected ButtonRectangle applyChanges;
     protected ToggleButton toggleButton;
     protected DiscreteSeekBar seekBar;
 
@@ -161,15 +162,28 @@ public class MainActivity extends AppCompatActivity {
         progressBar = (NumberProgressBar) findViewById(R.id.battery_life);
         tvBatteryLife = (TextView) findViewById(R.id.battery);
         tvTemperature = (TextView) findViewById(R.id.current_temp);
-        tvMode1 = (TextView) findViewById(R.id.mode_1);
-        tvMode2 = (TextView) findViewById(R.id.mode_2);
-        tvMode3 = (TextView) findViewById(R.id.mode_3);
+        //tvMode1 = (TextView) findViewById(R.id.mode_1);
+        brMode1 = (ButtonRectangle) findViewById(R.id.mode_1);
+        brMode2 = (ButtonRectangle) findViewById(R.id.mode_2);
+        brMode3 = (ButtonRectangle) findViewById(R.id.mode_3);
+        //tvMode2 = (TextView) findViewById(R.id.mode_2);
+        //tvMode3 = (TextView) findViewById(R.id.mode_3);
         toggleButton = (ToggleButton) findViewById(R.id.temp_unit);
         imBluetooth = (ImageView) findViewById(R.id.bluetooth);
-        applyChanges = (Button) findViewById(R.id.change);
+        applyChanges = (ButtonRectangle) findViewById(R.id.change);
         seekBar.setProgress(seekBarProgress);
         progressBar.setProgress(((int) batteryLife));
-        tvMode1.setOnClickListener(new View.OnClickListener() {
+
+        /*tvMode1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //OnClick of the button the floating activity is started
+                Intent startFloatingActivity = new Intent(MainActivity.this,  FloatingActivity.class);
+                startFloatingActivity.putExtra("Mode", 1);
+                MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
+            }
+        });*/
+        brMode1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //OnClick of the button the floating activity is started
@@ -178,7 +192,9 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
             }
         });
-        tvMode2.setOnClickListener(new View.OnClickListener(){
+
+
+        /*tvMode2.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 try {
@@ -207,7 +223,41 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
+        });*/
+
+        brMode2.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                try {
+                    Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    outputStream.write("j".getBytes());
+                    outputStream.write(stateVal[0]);
+                    outputStream.write(stateVal[1]);
+                    outputStream.write(stateVal[2]);
+                    outputStream.write(" ".getBytes());
+                    myBtService.sendBtData(outputStream.toByteArray());
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+
         });
+
+
+        brMode3.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                try {
+                    myBtService.sendBtData("j\n".getBytes());
+
+
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+
         applyChanges.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
@@ -247,8 +297,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Intent intent = new Intent(this, MyBtService.class);
-        startService(intent);
-        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+       // startService(intent);
+        //bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
     }
 
