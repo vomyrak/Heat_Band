@@ -201,8 +201,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 try {
                     myBtService.resetBluetooth();
-
-
                 } catch (Exception e){
                     e.printStackTrace();
                 }
@@ -218,12 +216,6 @@ public class MainActivity extends AppCompatActivity {
                 bundle.putString(mOutgoingData, "j255,0,255 ");
                 message.setData(bundle);
                 myBtService.writingThread.handler.sendMessage(message);
-                /*
-                try {
-                    myBtService.resetBluetooth();
-                } catch (Exception e){
-                    e.printStackTrace();
-                }*/
             }
         });
 
@@ -232,20 +224,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
                 seekBarProgress = seekBar.getProgress();
-
             }
 
             @Override
             public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
-
             }
 
             @Override
             public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
-
             }
         });
-
+        Intent startupIntent = new Intent(this, ScanActivity.class);
+        startActivityForResult(startupIntent, 1);
         Intent intent = new Intent(this, MyBtService.class);
         startService(intent);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);

@@ -1,10 +1,12 @@
 package com.example.vomyrak.heatband;
 
+import android.app.Activity;
 import android.app.IntentService;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -17,8 +19,11 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.Process;
+import android.os.ResultReceiver;
 import android.os.health.ServiceHealthStats;
+import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -56,13 +61,12 @@ public class MyBtService extends IntentService {
     protected InputStream btIn;
     protected OutputStream btOut;
     protected Thread btThread;
-    protected DataThread dataThread;
     protected Handler timerHandler;
     protected WritingThread writingThread;
     protected Thread listeningThread;
 
     protected static final String mConfig = "Config";
-
+    protected static int serviceId;
     protected Random random = new Random();
     protected String randString;
     protected class MyBinder extends Binder{
@@ -73,38 +77,49 @@ public class MyBtService extends IntentService {
         int serviceId;
         BluetoothThread(int serviceId){
             this.serviceId = serviceId;
+            timerHandler = new Handler();
         }
         @Override
         public void run() {
-            timerHandler = new Handler();
-            try{
-                if (bluetoothSocket.isConnected()){
-                    Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
-                    //bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
-                    randString = "a";
-                    randString += String.valueOf(random.nextInt(255));
-                    randString += ",";
-                    randString += String.valueOf(random.nextInt(255));
-                    randString += ",";
-                    randString += String.valueOf(random.nextInt(255));
-                    randString += " ";
-                    Log.d("Outgoing data = ", randString);
-                    Bundle outgoingData = new Bundle();
-                    outgoingData.putString(mOutgoingData, randString);
-                    Message messageOut = Message.obtain();
-                    messageOut.setData(outgoingData);
-                    writingThread.handler.sendMessage(messageOut);
+            if (bluetoothSocket != null) {
+                Log.d(TAG, "BluetoothThread.run()");
+                try {
+                    if (bluetoothSocket.isConnected()) {
+                        Toast.makeText(getApplicationContext(), "BT Name: " + DEVICE_NAME + "\nBT Address: " + DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
+                        randString = "a";
+                        randString += String.valueOf(random.nextInt(255));
+                        randString += ",";
+                        randString += String.valueOf(random.nextInt(255));
+                        randString += ",";
+                        randString += String.valueOf(random.nextInt(255));
+                        randString += " ";
+                        Log.d("Outgoing data = ", randString);
+                        Bundle outgoingData = new Bundle();
+                        outgoingData.putString(mOutgoingData, randString);
+                        Message messageOut = Message.obtain();
+                        messageOut.setData(outgoingData);
+                        writingThread.handler.sendMessage(messageOut);
+                    }
+                    else{
+                        resetBluetooth();
+                    }
+                } catch (NullPointerException f) {
+                    try {
+                        connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
+                        bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
+                        bluetoothSocket.connect();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } finally {
+                    timerHandler.postDelayed(btThread, 1000 * 5);
                 }
-            } catch (NullPointerException f){
-                try{
-                    connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
-                    bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
-                    bluetoothSocket.connect();
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
+
             }
-            timerHandler.postDelayed(btThread, 1000 * 5);
+            else {
+                resetBluetooth();
+                timerHandler.postDelayed(btThread, 1000 * 5);
+            }
         }
     }
 
@@ -146,12 +161,16 @@ public class MyBtService extends IntentService {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
         Log.v(TAG, "In onstartCommand");
-        btThread = new Thread(new BluetoothThread(startId));
-        btThread.run();
-        listeningThread = new Thread(new ListeningThread());
+        serviceId = startId;
         writingThread = new WritingThread();
-        listeningThread.run();
         writingThread.start();
+        btThread = new Thread(new BluetoothThread(startId));
+        listeningThread = new Thread(new ListeningThread());
+
+        btThread.run();
+
+        listeningThread.run();
+
         return START_STICKY;
     }
 
@@ -159,17 +178,14 @@ public class MyBtService extends IntentService {
     public void onCreate(){
         super.onCreate();
         Log.v(TAG, "in Oncreate");
-
-
         //Initialise Bluetooth
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null){
             Toast.makeText(getApplicationContext(), "Bluetooth not supported", Toast.LENGTH_SHORT).show();
         }
         if (!bluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            enableBtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            getApplicationContext().startActivity(enableBtIntent);
+
+
         }
 
         if (bluetoothSocket == null) {
@@ -186,16 +202,13 @@ public class MyBtService extends IntentService {
                             Toast.makeText(getApplicationContext(), "No matched UUID found", Toast.LENGTH_SHORT).show();
                         }
                     }
-                    try {
-                        connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
-                        bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
-                        bluetoothSocket.connect();
-                        bluetoothAdapter.cancelDiscovery();
-                        btIn = bluetoothSocket.getInputStream();
-                        btOut = bluetoothSocket.getOutputStream();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
+                    bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
+                    bluetoothSocket.connect();
+                    bluetoothAdapter.cancelDiscovery();
+                    btIn = bluetoothSocket.getInputStream();
+                    btOut = bluetoothSocket.getOutputStream();
+
                 }
             } catch (Exception e) {
                 Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
@@ -223,10 +236,7 @@ public class MyBtService extends IntentService {
     }
     public String receiveBtData(byte[] buffer) throws IOException, NullPointerException{
         if (btIn.available() > 0) {
-            while (btIn.read() != (int)'?'){
-                Log.d(TAG, String.valueOf(btIn.read()));
-                Log.d(TAG, String.valueOf((int)'?'));
-            }
+            while (btIn.read() != (int)'?'){}
             int length = btIn.read(buffer);
             return getBtData(new String(buffer, 0, length));
         }
@@ -249,13 +259,6 @@ public class MyBtService extends IntentService {
 
     protected void resetBluetooth(){
         bluetoothAdapter = null;
-        try {
-            synchronized (this) {
-                this.wait(1000);
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (!bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -265,7 +268,6 @@ public class MyBtService extends IntentService {
 
         if (bluetoothSocket == null) {
             try {
-                Toast.makeText(getApplicationContext(), "Resumed", Toast.LENGTH_SHORT).show();
                 pairedDevices = bluetoothAdapter.getBondedDevices();
                 if (pairedDevices.size() > 0) {
                     for (BluetoothDevice bt : pairedDevices) {
@@ -274,7 +276,7 @@ public class MyBtService extends IntentService {
                             DEVICE_NAME = bt.getName();
                             break;
                         } else {
-                            Toast.makeText(getApplicationContext(), "No matched UUID found", Toast.LENGTH_SHORT).show();
+                            //No matched devices
                         }
                     }
                     try {
@@ -312,8 +314,8 @@ public class MyBtService extends IntentService {
         if (dataArray.length != 3){
             return false;
         }
+
         Log.d(TAG, data);
-        //return true;
         // TODO to implement decoding mechanism
 
         switch (opcode){
@@ -354,24 +356,7 @@ public class MyBtService extends IntentService {
         }
     }
 
-    public class DataThread extends Thread{
-        Handler handler;
-        DataThread(){
-        }
-        @Override
-        public void run() {
-            Looper.prepare();
-            handler = new Handler(){
-                @Override
-                public void handleMessage(Message msg) {
-                    String data = msg.getData().getString(mConfig);
-                    boolean decodeSuccess = decodeMessage(data);
-                    Log.d(TAG, "handleMessage: " + String.valueOf(decodeSuccess));
-                }
-            };
-            Looper.loop();
-        }
-    }
+
 
     public class ListeningThread implements Runnable{
         Handler handler = new Handler();
@@ -380,14 +365,16 @@ public class MyBtService extends IntentService {
 
         @Override
         public void run() {
+            Log.d(TAG, "ListeningThread.run()");
+            if (bluetoothSocket != null) {
                 try {
-                    if (!(btIn.available() > 0)){}
-                    else{
+                    if (!(btIn.available() > 0)) {
+                    } else {
                         byte[] bluetoothReturn = new byte[1024];
                         String readMessage = receiveBtData(bluetoothReturn);
                         Log.d(TAG, "GotMessage: " + readMessage);
 
-                        if (readMessage.length() != 0){
+                        if (readMessage.length() != 0) {
                             boolean decodeSuccess = decodeMessage(readMessage);
                             Log.d(TAG, "handleMessage: " + String.valueOf(decodeSuccess));
 
@@ -398,6 +385,10 @@ public class MyBtService extends IntentService {
                 } finally {
                     handler.postDelayed(listeningThread, 500);
                 }
+            }
+            else {
+                handler.postDelayed(listeningThread, 500);
+            }
 
         }
     }
@@ -408,15 +399,21 @@ public class MyBtService extends IntentService {
         }
         @Override
         public void run() {
+
             Looper.prepare();
             handler = new Handler(){
                 @Override
                 public void handleMessage(Message msg) {
-                    String data = msg.getData().getString(mOutgoingData);
-                    sendBtData(data.getBytes());
+                    if (bluetoothSocket != null) {
+                        Log.d(TAG, "WritingThread.run()");
+                        String data = msg.getData().getString(mOutgoingData);
+                        sendBtData(data.getBytes());
+                    }
                 }
             };
             Looper.loop();
         }
     }
+
+
 }

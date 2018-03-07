@@ -32,7 +32,9 @@
         <service
             android:name=".MyBtService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
+        <activity android:name=".ScanActivity"></activity>
     </application>
 
 </manifest>
