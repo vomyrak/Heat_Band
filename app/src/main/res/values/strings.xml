@@ -6,16 +6,19 @@
     <string name="Mode_3">Mode 3</string>
     <string name="Mode_2">Mode 2</string>
     <string name="Mode_1">Mode 1</string>
-    <string name="Apply_Changes">Apply Changes</string>
+    <string name="applyChanges">Apply Changes</string>
 
     <string name="Temperature">Temperature</string>
-    <string name="Temp_Unit">Temperature Unit</string>
+    <string name="tempUnit">Temperature Unit</string>
     <string name="Celsius">°C</string>
     <string name="Fahrenheit">°F</string>
-    <string name="Temp_offset">Offset</string>
+    <string name="tempOffset">Offset</string>
 
     <string name="Battery">Battery</string>
-    <string name="Bluetooth">Bluetooth</string>
+    <string name="batteryCharging">Charging</string>
+    <string name="batteryLow">Low Battery</string>
+    <string name="btConnected">Bluetooth Connected</string>
+    <string name="btSearching">Bluetooth Searching</string>
 
     <string name="Zone_1">Zone 1</string>
     <string name="Zone_2">Zone 2</string>

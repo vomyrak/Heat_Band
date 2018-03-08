@@ -89,7 +89,8 @@ public class MainActivity extends AppCompatActivity {
     protected ButtonRectangle brMode1;
     protected ButtonRectangle brMode2;
     protected ButtonRectangle brMode3;
-    protected ImageView imBluetooth;
+    protected ImageView btConnected;
+    protected ImageView btSearching;
     protected ButtonRectangle applyChanges;
     protected ToggleButton toggleButton;
     protected DiscreteSeekBar seekBar;
@@ -163,13 +164,14 @@ public class MainActivity extends AppCompatActivity {
         tvBatteryLife = (TextView) findViewById(R.id.battery);
         tvTemperature = (TextView) findViewById(R.id.current_temp);
         //tvMode1 = (TextView) findViewById(R.id.mode_1);
+        //tvMode2 = (TextView) findViewById(R.id.mode_2);
+        //tvMode3 = (TextView) findViewById(R.id.mode_3);
         brMode1 = (ButtonRectangle) findViewById(R.id.mode_1);
         brMode2 = (ButtonRectangle) findViewById(R.id.mode_2);
         brMode3 = (ButtonRectangle) findViewById(R.id.mode_3);
-        //tvMode2 = (TextView) findViewById(R.id.mode_2);
-        //tvMode3 = (TextView) findViewById(R.id.mode_3);
         toggleButton = (ToggleButton) findViewById(R.id.temp_unit);
-        imBluetooth = (ImageView) findViewById(R.id.bluetooth);
+        btConnected = (ImageView) findViewById(R.id.btConnected);
+        btSearching = (ImageView) findViewById(R.id.btSearching);
         applyChanges = (ButtonRectangle) findViewById(R.id.change);
         seekBar.setProgress(seekBarProgress);
         progressBar.setProgress(((int) batteryLife));
