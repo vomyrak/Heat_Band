@@ -18,10 +18,8 @@
         <item name="windowNoTitle">false</item>
     </style>
 
-    <style name="FloatingTheme" parent="@style/Theme.AppCompat.Dialog.Alert">
+    <style name="FloatingTheme" parent="@style/Theme.AppCompat.Dialog">
         <item name="android:windowTitleBackgroundStyle">@style/WindowTitleBackground</item>
-        <item name="android:windowActionBar">false</item>
-        <item name="android:windowNoTitle">false</item>
     </style>
 
     <style name="WindowTitleBackground">

@@ -2,10 +2,10 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="300dp"
+    android:layout_width="match_parent"
     android:layout_height="400dp"
     android:background="@color/floatingColor"
-    android:theme="@style/FloatingTheme"
+    android:theme="@style/Theme.AppCompat.Dialog"
     tools:context="com.example.vomyrak.heatband.FloatingActivity"
     tools:layout_editor_absoluteX="16dp"
     tools:layout_editor_absoluteY="16dp">
@@ -35,6 +35,7 @@
         android:layout_width="125dp"
         android:layout_height="25dp"
         android:layout_marginBottom="8dp"
+        android:layout_marginEnd="51dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         app:dsb_indicatorColor="@color/reached"
@@ -45,6 +46,7 @@
         app:dsb_trackColor="@color/unreached"
         app:dsb_value="2"
         app:layout_constraintBottom_toBottomOf="@+id/zone2"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/zone2"
         app:layout_constraintTop_toTopOf="@+id/zone2" />
 
@@ -53,6 +55,7 @@
         android:layout_width="125dp"
         android:layout_height="25dp"
         android:layout_marginBottom="8dp"
+        android:layout_marginEnd="51dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         app:dsb_indicatorColor="@color/reached"
@@ -63,6 +66,7 @@
         app:dsb_trackColor="@color/unreached"
         app:dsb_value="2"
         app:layout_constraintBottom_toBottomOf="@+id/zone3"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/zone3"
         app:layout_constraintTop_toTopOf="@+id/zone3" />
 

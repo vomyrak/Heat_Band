@@ -54,6 +54,7 @@ import static com.example.vomyrak.heatband.MainActivity.mOutgoingData;
 import static com.example.vomyrak.heatband.MainActivity.rRequestBt;
 import static com.example.vomyrak.heatband.MainActivity.stateVal;
 import static com.example.vomyrak.heatband.MainActivity.tempVal;
+import static com.example.vomyrak.heatband.MainActivity.btDiscoveryDone;
 
 public class MyBtService extends IntentService {
     protected static final String TAG ="MyBtService";
@@ -224,7 +225,13 @@ public class MyBtService extends IntentService {
             enableBtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getApplicationContext().startActivity(enableBtIntent);
         }
-
+        if (!btDiscoveryDone){
+            Intent broadcastIntent = new Intent();
+            broadcastIntent.setAction("com.example.vomyrak.heatband.MY_NOTIFICATION");
+            broadcastIntent.putExtra("data", "scanForDevices");
+            sendBroadcast(broadcastIntent);
+            return;
+        }
         if (bluetoothSocket == null) {
             try {
                 pairedDevices = bluetoothAdapter.getBondedDevices();

@@ -1,16 +1,10 @@
 package com.example.vomyrak.heatband;
 
 import android.content.Intent;
-import android.graphics.drawable.ColorDrawable;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.widget.SeekBar;
-import android.widget.Button;
-import android.widget.Toast;
 
 import com.gc.materialdesign.views.ButtonRectangle;
 
@@ -18,7 +12,6 @@ import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 
 import static com.example.vomyrak.heatband.MainActivity.bluetoothSocket;
 import static com.example.vomyrak.heatband.MainActivity.stateVal;
-import static com.example.vomyrak.heatband.MainActivity.mJsonFile;
 
 public class FloatingActivity extends AppCompatActivity {
     
@@ -34,13 +27,13 @@ public class FloatingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_floating);
-        getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.activity_floating);
-        zone1 = (DiscreteSeekBar) findViewById(R.id.set_zone1);
-        zone2 = (DiscreteSeekBar) findViewById(R.id.set_zone2);
-        zone3 = (DiscreteSeekBar) findViewById(R.id.set_zone3);
-        save = (ButtonRectangle) findViewById(R.id.save);
+        getWindow().setFeatureInt(Window.FEATURE_NO_TITLE, R.layout.activity_floating);
+        zone1 = findViewById(R.id.set_zone1);
+        zone2 = findViewById(R.id.set_zone2);
+        zone3 = findViewById(R.id.set_zone3);
+        save = findViewById(R.id.save);
         Intent newIntent = getIntent();
         mode = newIntent.getIntExtra("Mode", 0);
         final int offset = mode * 3;

@@ -1,39 +1,23 @@
 package com.example.vomyrak.heatband;
 
-import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
-import android.content.ClipData;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.Message;
-import android.os.ParcelUuid;
-import android.provider.ContactsContract;
-import android.sax.StartElementListener;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.text.method.NumberKeyListener;
-import android.util.JsonReader;
-import android.util.JsonWriter;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -43,32 +27,19 @@ import com.daimajia.numberprogressbar.NumberProgressBar;
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 import com.example.vomyrak.heatband.MyBtService.MyBinder;
 import com.gc.materialdesign.views.ButtonRectangle;
 
-import static java.lang.System.err;
-import static java.lang.System.out;
-
-// TODO(1) Re-assignment of widget ids
-// TODO(2) Add a widget to display temperature
 
 public class MainActivity extends AppCompatActivity {
 
@@ -80,8 +51,6 @@ public class MainActivity extends AppCompatActivity {
     protected static int seekBarProgress = 50;
     protected static float tempVal;
     //Create shared preference
-    protected SharedPreferences settings;
-    protected SharedPreferences.Editor editor;
     //Create UI elements
     protected NumberProgressBar progressBar;
     protected TextView tvBatteryLife;
@@ -98,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
     //Create constant strings
     protected static final String mSettingStateVals = "stateVals";
     protected static final String mBatteryLife = "batteryLife";
-    protected static final String mPreferenceFile  = "MyPreferenceFile";
     protected static final String mSeekBarProgress = "seekbarProgress";
     protected static final String mJsonFile = "Settings.json";
     protected static final String mOutgoingData = "OutgoingData";
@@ -120,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
     //Service Related
     MyBtService myBtService;
     boolean mServiceBound = false;
+    protected static boolean btDiscoveryDone = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,10 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 File file = new File(mJsonFile);
                 Log.d("Json Checking", "onCreate: Json FIle READ");
                 Log.d("File InName", file.getName());
-                if (file.exists()) {
-                    //FileInputStream infile = openFileInput(mJsonFile);
-                }
-                else{
+                if (!file.exists()){
                     //encode default values here;
                     for (int i = 0; i < stateVal.length; i++){
                         stateVal[i] = 0;
@@ -159,20 +125,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_main);
-        seekBar = (DiscreteSeekBar) findViewById(R.id.temp_setter);
-        progressBar = (NumberProgressBar) findViewById(R.id.battery_life);
-        tvBatteryLife = (TextView) findViewById(R.id.battery);
-        tvTemperature = (TextView) findViewById(R.id.current_temp);
-        //tvMode1 = (TextView) findViewById(R.id.mode_1);
-        //tvMode2 = (TextView) findViewById(R.id.mode_2);
-        //tvMode3 = (TextView) findViewById(R.id.mode_3);
-        brMode1 = (ButtonRectangle) findViewById(R.id.mode_1);
-        brMode2 = (ButtonRectangle) findViewById(R.id.mode_2);
-        brMode3 = (ButtonRectangle) findViewById(R.id.mode_3);
-        toggleButton = (ToggleButton) findViewById(R.id.temp_unit);
-        btConnected = (ImageView) findViewById(R.id.btConnected);
-        btSearching = (ImageView) findViewById(R.id.btSearching);
-        applyChanges = (ButtonRectangle) findViewById(R.id.change);
+        seekBar = findViewById(R.id.temp_setter);
+        progressBar =  findViewById(R.id.battery_life);
+        tvBatteryLife =  findViewById(R.id.battery);
+        tvTemperature = findViewById(R.id.current_temp);
+        brMode1 = findViewById(R.id.mode_1);
+        brMode2 = findViewById(R.id.mode_2);
+        brMode3 = findViewById(R.id.mode_3);
+        toggleButton = findViewById(R.id.temp_unit);
+        btConnected = findViewById(R.id.btConnected);
+        btSearching = findViewById(R.id.btSearching);
+        applyChanges = findViewById(R.id.change);
         seekBar.setProgress(seekBarProgress);
         progressBar.setProgress(((int) batteryLife));
 
@@ -250,6 +213,11 @@ public class MainActivity extends AppCompatActivity {
             public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
             }
         });
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.example.vomyrak.heatband.START_DISCOVERY");
+        filter.addAction("com.example.vomyrak.heatband.CANCEL_DISCOVERY");
+
+        this.registerReceiver(mReceiver, filter);
         Intent startupIntent = new Intent(this, ScanActivity.class);
         startActivityForResult(startupIntent, 1);
         Intent intent = new Intent(this, MyBtService.class);
@@ -293,39 +261,22 @@ public class MainActivity extends AppCompatActivity {
 
         //onStart, UI elements are associated with variables
     }
-/*
+
      private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
 
             String action = intent.getAction();
             Toast.makeText(getApplicationContext(), "1", Toast.LENGTH_SHORT).show();
-            if (!connectedDevice.ACTION_ACL_CONNECTED.equals(action)) {
-                Toast.makeText(getApplicationContext(), "2", Toast.LENGTH_SHORT).show();
-                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                    Toast.makeText(getApplicationContext(), "3", Toast.LENGTH_SHORT).show();
-                    connectedDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    String deviceName = connectedDevice.getName();
-                    if (deviceName == "HC-05") {
-                        DEVICE_ADDRESS = connectedDevice.getAddress();
-                        DEVICE_NAME = deviceName;
-                        try {
-                            Boolean isBonded = connectedDevice.createBond();
-                            if (isBonded){
-                                Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
-                                bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);//create a RFCOMM (SPP) connection
-                                bluetoothSocket.connect();
-                            }
-                        } catch (Exception e) {
-                            Toast.makeText(getApplicationContext(), "Failed to pair device", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                }
+            if ("com.example.vomyrak.heatband.START_DISCOVERY".equals(action)) {
+                bluetoothAdapter.startDiscovery();
+            }
+            else if ("com.example.vomyrak.heatband.START_CANCELCOVERY".equals(action)){
+                bluetoothAdapter.cancelDiscovery();
             }
         }
     };
-*/
+
     @Override
     protected void onResume(){
         super.onResume();
@@ -340,7 +291,6 @@ public class MainActivity extends AppCompatActivity {
             stateVal[offset + 1] = NewData[1];
             stateVal[offset + 2] = NewData[2];
         }
-        ;
     }
 
     @Override
@@ -483,8 +433,4 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
-
-
-
 }
