@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.SeekBar;
 import android.widget.Button;
 import android.widget.Toast;
@@ -33,7 +34,9 @@ public class FloatingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
         setContentView(R.layout.activity_floating);
+        getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.activity_floating);
         zone1 = (DiscreteSeekBar) findViewById(R.id.set_zone1);
         zone2 = (DiscreteSeekBar) findViewById(R.id.set_zone2);
         zone3 = (DiscreteSeekBar) findViewById(R.id.set_zone3);

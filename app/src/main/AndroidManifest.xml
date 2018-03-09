@@ -27,7 +27,7 @@
         <activity
             android:name=".FloatingActivity"
             android:label="Heat Band Floating"
-            android:theme="@style/Theme.AppCompat.Dialog" />
+            android:theme="@style/FloatingTheme" />
 
         <service
             android:name=".MyBtService"

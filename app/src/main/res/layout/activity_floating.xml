@@ -5,7 +5,7 @@
     android:layout_width="300dp"
     android:layout_height="400dp"
     android:background="@color/floatingColor"
-    android:theme="@android:style/Theme.Dialog"
+    android:theme="@style/FloatingTheme"
     tools:context="com.example.vomyrak.heatband.FloatingActivity"
     tools:layout_editor_absoluteX="16dp"
     tools:layout_editor_absoluteY="16dp">

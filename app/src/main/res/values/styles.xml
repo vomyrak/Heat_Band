@@ -13,8 +13,18 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="MyTheme" parent="Theme.AppCompat.Dialog">
+    <style name="MyTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="windowActionBar">true</item>
         <item name="windowNoTitle">false</item>
+    </style>
+
+    <style name="FloatingTheme" parent="@style/Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowTitleBackgroundStyle">@style/WindowTitleBackground</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">false</item>
+    </style>
+
+    <style name="WindowTitleBackground">
+        <item name="android:background">@color/floatingColor</item>
     </style>
 </resources>
