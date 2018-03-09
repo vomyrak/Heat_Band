@@ -58,11 +58,13 @@ public class MainActivity extends AppCompatActivity {
     protected ButtonRectangle brMode1;
     protected ButtonRectangle brMode2;
     protected ButtonRectangle brMode3;
-    protected ImageView btConnected;
-    protected ImageView btSearching;
+    protected ImageView ivBtConnected;
+    protected ImageView ivBtSearching;
     protected ButtonRectangle applyChanges;
     protected ToggleButton toggleButton;
     protected DiscreteSeekBar seekBar;
+    protected ImageView ivBatteryLow;
+    protected ImageView ivBatteryCharging;
 
     //Create constant strings
     protected static final String mSettingStateVals = "stateVals";
@@ -116,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                     for (int i = 0; i < stateVal.length; i++){
                         stateVal[i] = 0;
                     }
-                    seekBarProgress = 50;
+                    seekBarProgress = 4;
                     batteryLife = 100;
                 }
             } catch (Exception e){
@@ -133,11 +135,14 @@ public class MainActivity extends AppCompatActivity {
         brMode2 = findViewById(R.id.mode_2);
         brMode3 = findViewById(R.id.mode_3);
         toggleButton = findViewById(R.id.temp_unit);
-        btConnected = findViewById(R.id.btConnected);
-        btSearching = findViewById(R.id.btSearching);
+        ivBtConnected = findViewById(R.id.btConnected);
+        ivBtSearching = findViewById(R.id.btSearching);
         applyChanges = findViewById(R.id.change);
         seekBar.setProgress(seekBarProgress);
         progressBar.setProgress(((int) batteryLife));
+        ivBatteryLow = findViewById(R.id.batteryLow);
+        ivBatteryCharging = findViewById(R.id.batteryCharging);
+
 
         brMode1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -148,9 +153,6 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
             }
         });
-
-
-
 
         brMode2.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -171,7 +173,6 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-
         brMode3.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
@@ -184,6 +185,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        if(batteryLife<20){
+            ivBatteryLow.setVisibility(View.VISIBLE);
+        }
+
 
         applyChanges.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -221,8 +227,8 @@ public class MainActivity extends AppCompatActivity {
         Intent startupIntent = new Intent(this, ScanActivity.class);
         startActivityForResult(startupIntent, 1);
         Intent intent = new Intent(this, MyBtService.class);
-        startService(intent);
-        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        //startService(intent);
+        //bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
     }
 
@@ -247,12 +253,16 @@ public class MainActivity extends AppCompatActivity {
             MyBinder binder = (MyBinder) iBinder;
             myBtService = binder.getService();
             mServiceBound = true;
+            ivBtConnected.setVisibility(View.VISIBLE);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             mServiceBound = false;
+            ivBtSearching.setVisibility(View.VISIBLE);
         }
+        //TODO check if iv is correct
+
     };
     @Override
     protected void onStart() {

@@ -24,6 +24,7 @@
     <string name="Zone_2">Zone 2</string>
     <string name="Zone_3">Zone 3</string>
     <string name="Save">Save</string>
+    <string name="ModeHeader">Mode</string>
 
 
 </resources>
