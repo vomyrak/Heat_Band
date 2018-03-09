@@ -64,7 +64,7 @@
             android:alpha="0.75"
             android:background="@color/text_light"
             android:checked="false"
-            android:text="@string/Temp_Unit"
+            android:text="@string/tempUnit"
             android:textColor="@color/text_dark"
             android:textOff="@string/Celsius"
             android:textOn="@string/Fahrenheit"
@@ -88,50 +88,50 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/bt_connected"
+            android:id="@+id/btConnected"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            app:srcCompat="@mipmap/ic_bluetooth_connected_white_48dp"
-            tools:layout_editor_absoluteX="8dp"
-            tools:layout_editor_absoluteY="8dp" />
-
-        <ImageView
-            android:id="@+id/bt_searching"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginTop="52dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/btConnected"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@mipmap/ic_bluetooth_searching_white_48dp"
-            tools:layout_editor_absoluteX="8dp" />
+            app:srcCompat="@mipmap/ic_bluetooth_connected_white_48dp" />
 
         <ImageView
-            android:id="@+id/battery_low"
+            android:id="@+id/btSearching"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="44dp"
+            android:contentDescription="@string/btSearching"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@mipmap/ic_bluetooth_searching_white_48dp" />
+
+        <ImageView
+            android:id="@+id/batteryLow"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginEnd="8dp"
             android:layout_marginTop="8dp"
+            android:contentDescription="@string/batteryLow"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@mipmap/ic_battery_alert_white_48dp" />
+            app:srcCompat="@mipmap/ic_battery_alert_white_48dp"
+            />
 
         <ImageView
-            android:id="@+id/battery_charging"
+            android:id="@+id/batteryCharging"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginEnd="8dp"
             android:layout_marginTop="52dp"
+            android:contentDescription="@string/batteryCharging"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@mipmap/ic_battery_charging_full_white_48dp" />
-
-        <ImageView
-            android:id="@+id/bluetooth"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@android:drawable/btn_dialog"
-            tools:layout_editor_absoluteY="156dp" />
+            app:srcCompat="@mipmap/ic_battery_charging_full_white_48dp"
+             />
 
 
     </android.support.constraint.ConstraintLayout>
@@ -146,7 +146,7 @@
         android:layout_marginStart="8dp"
         android:alpha="0.75"
         android:background="@color/button"
-        android:text="@string/Apply_Changes"
+        android:text="@string/applyChanges"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -213,7 +213,7 @@
         android:layout_height="30dp"
         android:layout_marginStart="60dp"
         android:layout_marginTop="8dp"
-        android:text="@string/Temp_offset"
+        android:text="@string/tempOffset"
         android:textColor="@color/text_dark"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="@+id/temp_setter"
@@ -221,13 +221,6 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/temp_setter" />
-
-    <android.support.constraint.Guideline
-        android:id="@+id/guideline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_begin="20dp" />
 
     <com.gc.materialdesign.views.ButtonRectangle
         android:id="@+id/mode_1"
