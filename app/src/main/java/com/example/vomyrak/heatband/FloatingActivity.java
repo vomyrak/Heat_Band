@@ -1,6 +1,8 @@
 package com.example.vomyrak.heatband;
 
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,6 +10,11 @@ import android.view.View;
 import android.widget.SeekBar;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.gc.materialdesign.views.ButtonRectangle;
+
+import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
+
 import static com.example.vomyrak.heatband.MainActivity.bluetoothSocket;
 import static com.example.vomyrak.heatband.MainActivity.stateVal;
 import static com.example.vomyrak.heatband.MainActivity.mJsonFile;
@@ -15,10 +22,10 @@ import static com.example.vomyrak.heatband.MainActivity.mJsonFile;
 public class FloatingActivity extends AppCompatActivity {
     
     //Build UI for the floating activity
-    protected SeekBar zone1;
-    protected SeekBar zone2;
-    protected SeekBar zone3;
-    protected Button save;
+    protected DiscreteSeekBar zone1;
+    protected DiscreteSeekBar zone2;
+    protected DiscreteSeekBar zone3;
+    protected ButtonRectangle save;
     protected byte[] data = new byte[3];
     protected int mode;
 
@@ -26,12 +33,11 @@ public class FloatingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_floating);
-        zone1 = (SeekBar) findViewById(R.id.set_zone1);
-        zone2 = (SeekBar) findViewById(R.id.set_zone2);
-        zone3 = (SeekBar) findViewById(R.id.set_zone3);
-        save = (Button) findViewById(R.id.save);
+        zone1 = (DiscreteSeekBar) findViewById(R.id.set_zone1);
+        zone2 = (DiscreteSeekBar) findViewById(R.id.set_zone2);
+        zone3 = (DiscreteSeekBar) findViewById(R.id.set_zone3);
+        save = (ButtonRectangle) findViewById(R.id.save);
         Intent newIntent = getIntent();
         mode = newIntent.getIntExtra("Mode", 0);
         final int offset = mode * 3;
@@ -65,56 +71,59 @@ public class FloatingActivity extends AppCompatActivity {
             zone2.setProgress((int) data[1]);
             zone3.setProgress((int) data[2]);
             
-            
-            zone1.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            zone1.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
                 @Override
-                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                    data[0]=(byte)i;
+                public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
+                    data[0]=(byte)value;
                 }
 
                 @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-
-                }
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-
-                }
-            });
-            zone2.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                    data[1]=(byte)i;
-                }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
+                public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
 
                 }
 
                 @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
+                public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
 
                 }
             });
-            zone3.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                    data[2]=(byte)i;
-                }
 
+            zone2.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
                 @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
+                public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
+                    data[1]=(byte)value;
 
                 }
 
                 @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
+                public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
 
                 }
             });
+
+            zone3.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
+                @Override
+                public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
+                    data[2]=(byte)value;
+
+                }
+
+                @Override
+                public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
+
+                }
+            });
+
 
         }
         else{finish();}

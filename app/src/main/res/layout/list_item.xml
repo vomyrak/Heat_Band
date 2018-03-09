@@ -3,15 +3,15 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:theme="@style/Theme.AppCompat.Dialog">
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/found_bluetooth_devices"
         style="@style/TextAppearance.AppCompat.Large"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"/>
+        android:layout_marginRight="8dp"
+        android:layout_marginLeft="8dp"/>
 
     <View
         android:layout_width="match_parent"

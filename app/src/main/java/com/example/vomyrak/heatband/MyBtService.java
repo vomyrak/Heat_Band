@@ -85,7 +85,7 @@ public class MyBtService extends IntentService {
                 Log.d(TAG, "BluetoothThread.run()");
                 try {
                     if (bluetoothSocket.isConnected()) {
-                        Toast.makeText(getApplicationContext(), "BT Name: " + DEVICE_NAME + "\nBT Address: " + DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "BT Name: " + DEVICE_NAME + "\nBT Address: " + DEVICE_ADDRESS);
                         randString = "a";
                         randString += String.valueOf(random.nextInt(255));
                         randString += ",";
@@ -183,48 +183,7 @@ public class MyBtService extends IntentService {
         if (bluetoothAdapter == null){
             Toast.makeText(getApplicationContext(), "Bluetooth not supported", Toast.LENGTH_SHORT).show();
         }
-        if (!bluetoothAdapter.isEnabled()) {
-
-
-        }
-
-        if (bluetoothSocket == null) {
-            try {
-                Toast.makeText(getApplicationContext(), "Resumed", Toast.LENGTH_SHORT).show();
-                pairedDevices = bluetoothAdapter.getBondedDevices();
-                if (pairedDevices.size() > 0) {
-                    for (BluetoothDevice bt : pairedDevices) {
-                        if (matchedUUID(bt)) {
-                            DEVICE_ADDRESS = bt.getAddress();
-                            DEVICE_NAME = bt.getName();
-                            break;
-                        } else {
-                            Toast.makeText(getApplicationContext(), "No matched UUID found", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                    connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
-                    bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
-                    bluetoothSocket.connect();
-                    bluetoothAdapter.cancelDiscovery();
-                    btIn = bluetoothSocket.getInputStream();
-                    btOut = bluetoothSocket.getOutputStream();
-
-                }
-            } catch (Exception e) {
-                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }
-        else{
-            if(!bluetoothSocket.isConnected()){
-                try {
-                    connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
-                    bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
-                    bluetoothSocket.connect();
-                } catch (IOException e){
-                    e.printStackTrace();
-                }
-            }
-        }
+        resetBluetooth();
     }
 
     public void sendBtData(byte[] data){

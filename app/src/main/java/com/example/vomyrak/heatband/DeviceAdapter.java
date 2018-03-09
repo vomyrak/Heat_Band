@@ -35,14 +35,8 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.AdapterVie
 
     @Override
     public AdapterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context context = parent.getContext();
-        int layoutIdForListItem = R.layout.list_item;
-        LayoutInflater inflater = LayoutInflater.from(context);
-        boolean shouldAttachToParentImmediately = false;
-
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item, parent, shouldAttachToParentImmediately);
-        AdapterViewHolder adapterViewHolder = new AdapterViewHolder(view);
-        return adapterViewHolder;
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item, parent, false);
+        return new AdapterViewHolder(view);
     }
 
     @Override
@@ -52,7 +46,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.AdapterVie
     }
 
     public void setDeviceData(String[] data){
-        mDeviceData = new String[]{"1","1","1","1","1","1","1","1","1",};
+        mDeviceData = data;
         notifyDataSetChanged();
     }
 }

@@ -34,7 +34,9 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".ScanActivity"></activity>
+        <activity android:name=".ScanActivity"
+            android:theme="@style/MyTheme"/>
+
     </application>
 
 </manifest>
