@@ -25,5 +25,7 @@
     <string name="Zone_3">Zone 3</string>
     <string name="Save">Save</string>
 
+    <string name="channel_name">This is a channel</string>
+    <string name="channel_description">This is a description</string>
 
 </resources>

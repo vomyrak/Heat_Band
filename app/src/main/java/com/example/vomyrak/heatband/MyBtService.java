@@ -2,6 +2,9 @@ package com.example.vomyrak.heatband;
 
 import android.app.Activity;
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -11,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -22,6 +26,8 @@ import android.os.Process;
 import android.os.ResultReceiver;
 import android.os.health.ServiceHealthStats;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -55,6 +61,7 @@ import static com.example.vomyrak.heatband.MainActivity.rRequestBt;
 import static com.example.vomyrak.heatband.MainActivity.stateVal;
 import static com.example.vomyrak.heatband.MainActivity.tempVal;
 import static com.example.vomyrak.heatband.MainActivity.btDiscoveryDone;
+import static com.example.vomyrak.heatband.MainActivity.currentMode;
 
 public class MyBtService extends IntentService {
     protected static final String TAG ="MyBtService";
@@ -70,6 +77,9 @@ public class MyBtService extends IntentService {
     protected static int serviceId;
     protected Random random = new Random();
     protected String randString;
+    protected static final String CHANNEL_ID = "Heatband";
+    private NotificationManager mNotificationManager;
+    protected boolean lowBatteryNotified = false;
     protected class MyBinder extends Binder{
         MyBtService getService(){return MyBtService.this;}
     }
@@ -162,6 +172,7 @@ public class MyBtService extends IntentService {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
         Log.v(TAG, "In onstartCommand");
+        registerNotification();
         serviceId = startId;
         writingThread = new WritingThread();
         writingThread.start();
@@ -301,20 +312,35 @@ public class MyBtService extends IntentService {
                 stateVal[11] = (byte)Integer.parseInt(dataArray[2]);
                 return true;
             case 'd':
-                // TODO to change mode number
+                currentMode = Integer.parseInt(dataArray[2]);
+                return true;
             case 'e':
-                // TODO to confirm received
+                // not implemented
             case 'f':
                 batteryLife = (byte)Integer.parseInt(dataArray[2]);
                 return true;
             case 'g':
-                tempVal = (byte)Integer.parseInt(dataArray[2]);
+                tempVal = -10 + (Integer.parseInt(dataArray[1]) * 256 + Integer.parseInt(dataArray[2])) * 70;
                 return true;
             case 'h':
+                Intent stateIntent = new Intent();
+                stateIntent.setAction("NOTIFY_POWER_OFF");
+                sendBroadcast(stateIntent);
+                return true;
                 // TODO band switched off
             case 'i':
+                Intent onIntent = new Intent();
+                onIntent.setAction("NOTIFY_POWER_ON");
+                sendBroadcast(onIntent);
+                return true;
                 // TODO band switched on
             case 'j':
+                NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
+                        .setContentTitle("Heat Band")
+                        .setContentText("Low Battery")
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                mNotificationManager.notify(1, mBuilder.build());
+                return true;
                 // TODO low battery warning
             default:
                 return false;
@@ -381,5 +407,23 @@ public class MyBtService extends IntentService {
         }
     }
 
+    private void registerNotification(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Create the NotificationChannel, but only on API 26+ because
+            // the NotificationChannel class is new and not in the support library
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.enableLights(true);
+            channel.enableVibration(true);
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            channel.setDescription(description);
+            // Register the channel with the system
+            if (mNotificationManager == null){
+                mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            }
+        }
+    }
 
 }

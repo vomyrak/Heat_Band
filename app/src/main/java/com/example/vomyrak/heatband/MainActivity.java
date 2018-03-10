@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     //Create an integer for seekbar progress;
     protected static int seekBarProgress = 50;
     protected static float tempVal;
+    protected static int currentMode;
     //Create shared preference
     //Create UI elements
     protected NumberProgressBar progressBar;
@@ -84,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
     //A list of request codes
     protected static final int rRequestBt = 1;
     protected static final int rRequestZoneSetting = 2;
+    protected static final int rRequestBtScan = 3;
 
     //Service Related
     MyBtService myBtService;
@@ -218,11 +220,8 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction("com.example.vomyrak.heatband.CANCEL_DISCOVERY");
 
         this.registerReceiver(mReceiver, filter);
-        Intent startupIntent = new Intent(this, ScanActivity.class);
-        startActivityForResult(startupIntent, 1);
-        Intent intent = new Intent(this, MyBtService.class);
-        startService(intent);
-        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+
+
 
     }
 
@@ -237,6 +236,13 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == rRequestZoneSetting){
             if (resultCode == RESULT_OK){
                 saveFile();
+            }
+        }
+        if (requestCode == rRequestBtScan){
+            if (resultCode == RESULT_OK) {
+                Intent intent = new Intent(this, MyBtService.class);
+                //startService(intent);
+                //bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             }
         }
     }
@@ -255,12 +261,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
     @Override
-    protected void onStart() {
-        super.onStart();
-
-
-        //onStart, UI elements are associated with variables
-    }
+    protected void onStart() {super.onStart();}
 
      private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -270,6 +271,8 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "1", Toast.LENGTH_SHORT).show();
             if ("com.example.vomyrak.heatband.START_DISCOVERY".equals(action)) {
                 bluetoothAdapter.startDiscovery();
+                Intent startupIntent = new Intent(MainActivity.this, ScanActivity.class);
+                startActivityForResult(startupIntent, 1);
             }
             else if ("com.example.vomyrak.heatband.START_CANCELCOVERY".equals(action)){
                 bluetoothAdapter.cancelDiscovery();
@@ -284,7 +287,6 @@ public class MainActivity extends AppCompatActivity {
         Intent UpdateProgress = getIntent();
         int mode = UpdateProgress.getIntExtra("Mode", 0);
         byte NewData[] = UpdateProgress.getByteArrayExtra("New Progress");
-
         if(mode!=0){
             int offset = mode * 3;
             stateVal[offset] = NewData[0];
@@ -431,6 +433,15 @@ public class MainActivity extends AppCompatActivity {
             stateVal[11] = (byte)newArray.getInt(2) ;
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void changeActiveMode(int newMode){
+        if (newMode == currentMode){
+            currentMode = 0;
+        }
+        else{
+            currentMode = newMode;
         }
     }
 }
