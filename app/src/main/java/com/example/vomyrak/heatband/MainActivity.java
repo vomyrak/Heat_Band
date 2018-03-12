@@ -23,7 +23,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.daimajia.numberprogressbar.NumberProgressBar;
-
+import com.gc.materialdesign.views.Switch;
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     //Create an integer for seekbar progress;
     protected static int seekBarProgress = 50;
     protected static float tempVal;
+    protected static int currentMode;
     //Create shared preference
     //Create UI elements
     protected NumberProgressBar progressBar;
@@ -65,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
     protected DiscreteSeekBar seekBar;
     protected ImageView ivBatteryLow;
     protected ImageView ivBatteryCharging;
+    protected Switch mode1Switch;
+    protected Switch mode2Switch;
+    protected Switch mode3Switch;
 
     //Create constant strings
     protected static final String mSettingStateVals = "stateVals";
@@ -86,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     //A list of request codes
     protected static final int rRequestBt = 1;
     protected static final int rRequestZoneSetting = 2;
+    protected static final int rRequestBtScan = 3;
 
     //Service Related
     MyBtService myBtService;
@@ -120,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                     seekBarProgress = 4;
                     batteryLife = 100;
+                    Intent startupIntent = new Intent(this, ScanActivity.class);
+                    startActivityForResult(startupIntent, 1);
                 }
             } catch (Exception e){
                 finish();
@@ -142,8 +149,9 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setProgress(((int) batteryLife));
         ivBatteryLow = findViewById(R.id.batteryLow);
         ivBatteryCharging = findViewById(R.id.batteryCharging);
-
-
+        mode1Switch = findViewById(R.id.switch1);
+        mode2Switch = findViewById(R.id.switch2);
+        mode3Switch = findViewById(R.id.switch3);
         brMode1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -219,14 +227,52 @@ public class MainActivity extends AppCompatActivity {
             public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
             }
         });
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("com.example.vomyrak.heatband.START_DISCOVERY");
-        filter.addAction("com.example.vomyrak.heatband.CANCEL_DISCOVERY");
 
-        this.registerReceiver(mReceiver, filter);
-        Intent startupIntent = new Intent(this, ScanActivity.class);
-        startActivityForResult(startupIntent, 1);
-        Intent intent = new Intent(this, MyBtService.class);
+        mode1Switch.setOncheckListener(new Switch.OnCheckListener() {
+            @Override
+            public void onCheck(Switch aSwitch, boolean isChecked) {
+                if (isChecked){
+                    changeActiveMode(1);
+                    mode2Switch.setChecked(false);
+                    mode3Switch.setChecked(false);
+                }
+                else{
+                    changeActiveMode(0);
+                }
+            }
+        });
+
+        mode2Switch.setOncheckListener(new Switch.OnCheckListener() {
+            @Override
+            public void onCheck(Switch aSwitch, boolean isChecked) {
+                if (isChecked){
+                    changeActiveMode(2);
+                    mode1Switch.setChecked(false);
+                    mode3Switch.setChecked(false);
+                }
+                else{
+                    changeActiveMode(0);
+                }
+            }
+        });
+        mode3Switch.setOncheckListener(new Switch.OnCheckListener() {
+            @Override
+            public void onCheck(Switch aSwitch, boolean isChecked) {
+                if (isChecked){
+                    changeActiveMode(3);
+                    mode2Switch.setChecked(false);
+                    mode1Switch.setChecked(false);
+                }
+                else{
+                    changeActiveMode(0);
+                }
+            }
+        });
+
+
+
+
+        //Intent intent = new Intent(this, MyBtService.class);
         //startService(intent);
         //bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
@@ -238,6 +284,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == rRequestBt){
             if (resultCode == 0){
                 Toast.makeText(getApplicationContext(), "The user decided to deny bluetooth access", Toast.LENGTH_SHORT).show();
+                ivBtConnected.setVisibility(View.VISIBLE);
             }
         }
         if (requestCode == rRequestZoneSetting){
@@ -245,7 +292,16 @@ public class MainActivity extends AppCompatActivity {
                 saveFile();
             }
         }
+        if (requestCode == rRequestBtScan){
+            if (resultCode == RESULT_OK) {
+                Intent intent = new Intent(this, MyBtService.class);
+                startService(intent);
+                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+            }
+        }
     }
+
+
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
@@ -253,24 +309,19 @@ public class MainActivity extends AppCompatActivity {
             MyBinder binder = (MyBinder) iBinder;
             myBtService = binder.getService();
             mServiceBound = true;
-            ivBtConnected.setVisibility(View.VISIBLE);
+
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             mServiceBound = false;
-            ivBtSearching.setVisibility(View.VISIBLE);
+
         }
-        //TODO check if iv is correct
+
 
     };
     @Override
-    protected void onStart() {
-        super.onStart();
-
-
-        //onStart, UI elements are associated with variables
-    }
+    protected void onStart() {super.onStart();}
 
      private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -278,10 +329,12 @@ public class MainActivity extends AppCompatActivity {
 
             String action = intent.getAction();
             Toast.makeText(getApplicationContext(), "1", Toast.LENGTH_SHORT).show();
-            if ("com.example.vomyrak.heatband.START_DISCOVERY".equals(action)) {
+            if ("START_DISCOVERY".equals(action)) {
                 bluetoothAdapter.startDiscovery();
+                Intent startupIntent = new Intent(MainActivity.this, ScanActivity.class);
+                startActivityForResult(startupIntent, 1);
             }
-            else if ("com.example.vomyrak.heatband.START_CANCELCOVERY".equals(action)){
+            else if ("CANCEL_DISCOVERY".equals(action)){
                 bluetoothAdapter.cancelDiscovery();
             }
         }
@@ -294,7 +347,6 @@ public class MainActivity extends AppCompatActivity {
         Intent UpdateProgress = getIntent();
         int mode = UpdateProgress.getIntExtra("Mode", 0);
         byte NewData[] = UpdateProgress.getByteArrayExtra("New Progress");
-
         if(mode!=0){
             int offset = mode * 3;
             stateVal[offset] = NewData[0];
@@ -441,6 +493,21 @@ public class MainActivity extends AppCompatActivity {
             stateVal[11] = (byte)newArray.getInt(2) ;
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void changeActiveMode(int newMode){
+        if (newMode == currentMode){
+            if ((!mode1Switch.isCheck()) && (!mode2Switch.isCheck()) && (!mode3Switch.isCheck())) {
+                currentMode = 0;
+                //TODO send op code to turn off heating
+            }
+        }
+        else{
+            currentMode = newMode;
+            if (myBtService != null) {
+                myBtService.sendBtData(("q" + String.valueOf(newMode)).getBytes());
+            }
         }
     }
 }
