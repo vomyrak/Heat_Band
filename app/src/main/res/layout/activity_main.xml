@@ -56,25 +56,25 @@
             app:layout_constraintTop_toTopOf="@+id/battery_life" />
 
 
-        <ToggleButton
+        <com.gc.materialdesign.views.ButtonFlat
             android:id="@+id/temp_unit"
-            android:layout_width="77dp"
-            android:layout_height="55dp"
+            android:layout_width="83dp"
+            android:layout_height="45dp"
             android:layout_marginEnd="48dp"
             android:layout_marginStart="16dp"
-            android:alpha="0.75"
             android:background="@color/text_light"
-            android:checked="false"
             android:fontFamily="@font/roboto"
-            android:text="@string/tempUnit"
-            android:textColor="@color/text_dark"
-            android:textOff="@string/Celsius"
-            android:textOn="@string/Fahrenheit"
-            android:textSize="18sp"
+            android:text="@string/Celsius"
+            android:textSize="30sp"
+
             app:layout_constraintBottom_toBottomOf="@+id/current_temp"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+
+
             app:layout_constraintStart_toEndOf="@+id/current_temp"
-            app:layout_constraintTop_toTopOf="@+id/current_temp" />
+            app:layout_constraintTop_toTopOf="@+id/current_temp"
+            app:layout_constraintVertical_bias="0.0" />
 
 
         <TextView
@@ -97,11 +97,10 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:contentDescription="@string/btConnected"
+            android:visibility="invisible"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@mipmap/ic_bluetooth_connected_white_48dp"
-            android:visibility="invisible"
-            />
+            app:srcCompat="@mipmap/ic_bluetooth_connected_white_48dp" />
 
         <ImageView
             android:id="@+id/btSearching"
@@ -110,11 +109,10 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:contentDescription="@string/btSearching"
+            android:visibility="invisible"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@mipmap/ic_bluetooth_searching_white_48dp"
-            android:visibility="invisible"
-            />
+            app:srcCompat="@mipmap/ic_bluetooth_searching_white_48dp" />
 
         <ImageView
             android:id="@+id/batteryLow"
@@ -123,11 +121,10 @@
             android:layout_marginEnd="8dp"
             android:layout_marginTop="8dp"
             android:contentDescription="@string/batteryLow"
+            android:visibility="invisible"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@mipmap/ic_battery_alert_white_48dp"
-            android:visibility="invisible"
-            />
+            app:srcCompat="@mipmap/ic_battery_alert_white_48dp" />
 
         <ImageView
             android:id="@+id/batteryCharging"

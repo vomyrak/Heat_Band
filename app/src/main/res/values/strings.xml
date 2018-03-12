@@ -9,7 +9,6 @@
     <string name="applyChanges">Apply Changes</string>
 
     <string name="Temperature">Temperature</string>
-    <string name="tempUnit">Temperature Unit</string>
     <string name="Celsius">°C</string>
     <string name="Fahrenheit">°F</string>
     <string name="tempOffset">Offset</string>
