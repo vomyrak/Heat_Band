@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     protected ImageView ivBtConnected;
     protected ImageView ivBtSearching;
     protected ButtonRectangle applyChanges;
-    protected ToggleButton toggleButton;
+    protected TextView tempUnit;
     protected DiscreteSeekBar seekBar;
     protected ImageView ivBatteryLow;
     protected ImageView ivBatteryCharging;
@@ -97,6 +97,9 @@ public class MainActivity extends AppCompatActivity {
     boolean mServiceBound = false;
     protected static boolean btDiscoveryDone = false;
 
+    //Temperature Unit
+    protected static boolean dTempUnit = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //Initialise app variables and UI elements on creation of application
@@ -126,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
                     seekBarProgress = 4;
                     batteryLife = 100;
                     Intent startupIntent = new Intent(this, ScanActivity.class);
-                    startActivityForResult(startupIntent, 1);
+                    //startActivityForResult(startupIntent, 1);
                 }
             } catch (Exception e){
                 finish();
@@ -141,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
         brMode1 = findViewById(R.id.mode_1);
         brMode2 = findViewById(R.id.mode_2);
         brMode3 = findViewById(R.id.mode_3);
-        toggleButton = findViewById(R.id.temp_unit);
+        tempUnit = findViewById(R.id.temp_unit);
         ivBtConnected = findViewById(R.id.btConnected);
         ivBtSearching = findViewById(R.id.btSearching);
         applyChanges = findViewById(R.id.change);
@@ -194,10 +197,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if(batteryLife<20){
-            ivBatteryLow.setVisibility(View.VISIBLE);
-        }
 
+
+
+
+        tempUnit.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                if(dTempUnit == true){
+                    dTempUnit = false;
+                    tempUnit.setText(R.string.Fahrenheit);
+                }
+                else{
+                    dTempUnit = true;
+                    tempUnit.setText(R.string.Celsius);
+                }
+
+            }
+        });
 
         applyChanges.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -294,9 +311,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (requestCode == rRequestBtScan){
             if (resultCode == RESULT_OK) {
-                Intent intent = new Intent(this, MyBtService.class);
-                startService(intent);
-                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+                //Intent intent = new Intent(this, MyBtService.class);
+                //startService(intent);
+                //bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             }
         }
     }

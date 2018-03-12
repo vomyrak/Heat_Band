@@ -327,6 +327,7 @@ public class MyBtService extends IntentService {
             case 'f':
                 batteryLife = (byte)Integer.parseInt(dataArray[2]);
                 return true;
+                //TODO batteryLow/Charging imageView update
             case 'g':
                 tempVal = -10 + (Integer.parseInt(dataArray[1]) * 256 + Integer.parseInt(dataArray[2])) * 70;
                 return true;
