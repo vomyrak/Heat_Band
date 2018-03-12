@@ -272,9 +272,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        //Intent intent = new Intent(this, MyBtService.class);
-        //startService(intent);
-        //bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+
 
     }
 
@@ -285,6 +283,11 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == 0){
                 Toast.makeText(getApplicationContext(), "The user decided to deny bluetooth access", Toast.LENGTH_SHORT).show();
                 ivBtConnected.setVisibility(View.VISIBLE);
+            }
+            else{
+                Intent intent = new Intent(this, MyBtService.class);
+                startService(intent);
+                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             }
         }
         if (requestCode == rRequestZoneSetting){

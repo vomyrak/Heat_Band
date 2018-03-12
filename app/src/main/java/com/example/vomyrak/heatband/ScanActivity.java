@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +19,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -34,13 +36,17 @@ public class ScanActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private DeviceAdapter mDeviceAdapter;
     private ProgressDialog mProgressDlg;
+    private Button mRefresh;
     private int REQUEST_COURSE_PERMISSION = 10;
+    private int result = 0;
+    private Handler scanTimeHandle= new Handler();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
         checkLocationPermission();
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        mRefresh = findViewById(R.id.refresh);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setHasFixedSize(true);
@@ -50,6 +56,8 @@ public class ScanActivity extends AppCompatActivity {
                 try {
                     Method method = discoveredDevices.get(clickedItemIndex).getClass().getMethod("createBond", (Class[]) null);
                     method.invoke(discoveredDevices.get(clickedItemIndex), (Object[]) null);
+                    setResult(RESULT_OK);
+                    result = RESULT_OK;
                 } catch (Exception e){
                     e.printStackTrace();
                 }
@@ -58,21 +66,17 @@ public class ScanActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mDeviceAdapter);
         getApplicationContext().registerReceiver(bReciever, new IntentFilter(BluetoothDevice.ACTION_FOUND));
         mRecyclerView.setVisibility(View.VISIBLE);
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        bluetoothAdapter.startDiscovery();
-        mProgressDlg 		= new ProgressDialog(this);
-        mProgressDlg.setMessage("Scanning...");
-        mProgressDlg.setCancelable(false);
-        mProgressDlg.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+        mRefresh.setOnClickListener(new View.OnClickListener(){
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-
-                bluetoothAdapter.cancelDiscovery();
+            public void onClick(View view) {
+                if (bluetoothAdapter.isDiscovering()){
+                    bluetoothAdapter.cancelDiscovery();
+                }
+                scanningRoutine();
             }
         });
+        scanningRoutine();
 
-        mProgressDlg.show();
     }
 
     @Override
@@ -80,6 +84,10 @@ public class ScanActivity extends AppCompatActivity {
         super.onPause();
         try {
             this.unregisterReceiver(bReciever);
+            if (result == RESULT_OK){
+                bluetoothAdapter.cancelDiscovery();
+            }
+            finish();
         } catch (IllegalArgumentException e){
             e.printStackTrace();
         }
@@ -108,6 +116,35 @@ public class ScanActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                     REQUEST_COURSE_PERMISSION);
+        }
+    }
+
+    private void scanningRoutine(){
+        try {
+            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            bluetoothAdapter.startDiscovery();
+            mProgressDlg = new ProgressDialog(this);
+            mProgressDlg.setMessage("Scanning...");
+            mProgressDlg.setCancelable(false);
+            mProgressDlg.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+
+                    bluetoothAdapter.cancelDiscovery();
+                }
+            });
+
+            mProgressDlg.show();
+            scanTimeHandle.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    bluetoothAdapter.cancelDiscovery();
+                    mProgressDlg.dismiss();
+                }
+            }, 10000);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
     }
 }

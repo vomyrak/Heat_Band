@@ -28,5 +28,5 @@
 
     <string name="channel_name">This is a channel</string>
     <string name="channel_description">This is a description</string>
-
+    <string name="refresh">Refresh</string>
 </resources>
