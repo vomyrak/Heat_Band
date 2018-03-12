@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.widget.TextView;
 
 import com.gc.materialdesign.views.ButtonRectangle;
 
@@ -20,6 +21,7 @@ public class FloatingActivity extends AppCompatActivity {
     protected DiscreteSeekBar zone2;
     protected DiscreteSeekBar zone3;
     protected ButtonRectangle save;
+    protected TextView header;
     protected byte[] data = new byte[3];
     protected int mode;
 
@@ -34,6 +36,7 @@ public class FloatingActivity extends AppCompatActivity {
         zone2 = findViewById(R.id.set_zone2);
         zone3 = findViewById(R.id.set_zone3);
         save = findViewById(R.id.save);
+        header = findViewById(R.id.modeDisplay);
         Intent newIntent = getIntent();
         mode = newIntent.getIntExtra("Mode", 0);
         final int offset = mode * 3;
@@ -66,7 +69,9 @@ public class FloatingActivity extends AppCompatActivity {
             zone1.setProgress((int) data[0]);
             zone2.setProgress((int) data[1]);
             zone3.setProgress((int) data[2]);
-            
+
+            header.setText(R.string.ModeHeader + mode);
+
             zone1.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
                 @Override
                 public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {

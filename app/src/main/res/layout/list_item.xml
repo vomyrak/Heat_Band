@@ -6,8 +6,16 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/found_bluetooth_devices"
+        android:id="@+id/found_bluetooth_device_name"
         style="@style/TextAppearance.AppCompat.Large"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="8dp"
+        android:layout_marginLeft="8dp" />
+
+    <TextView
+        android:id="@+id/found_bluetooth_devices_address"
+        style="@style/TextAppearance.AppCompat.Small"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginRight="8dp"

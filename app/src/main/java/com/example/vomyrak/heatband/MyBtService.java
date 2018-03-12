@@ -169,10 +169,16 @@ public class MyBtService extends IntentService {
     protected void onHandleIntent(Intent intent){
     }
 
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
         Log.v(TAG, "In onstartCommand");
         registerNotification();
+        mNotificationManager.notify(1, new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
+                .setSmallIcon(R.drawable.cooking_on_fire)
+                .setContentTitle("Heat Band")
+                .setContentText("Low Battery")
+                .setPriority(NotificationCompat.PRIORITY_HIGH).build());
         serviceId = startId;
         writingThread = new WritingThread();
         writingThread.start();
@@ -203,6 +209,8 @@ public class MyBtService extends IntentService {
             btOut.write(data);
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NullPointerException f){
+            Toast.makeText(getApplicationContext(), "No successful connection" , Toast.LENGTH_SHORT).show();
         }
     }
     public String receiveBtData(byte[] buffer) throws IOException, NullPointerException{
@@ -238,9 +246,9 @@ public class MyBtService extends IntentService {
         }
         if (!btDiscoveryDone){
             Intent broadcastIntent = new Intent();
-            broadcastIntent.setAction("com.example.vomyrak.heatband.MY_NOTIFICATION");
-            broadcastIntent.putExtra("data", "scanForDevices");
+            broadcastIntent.setAction("START_DISCOVERY");
             sendBroadcast(broadcastIntent);
+            btDiscoveryDone = true;
             return;
         }
         if (bluetoothSocket == null) {
@@ -374,7 +382,10 @@ public class MyBtService extends IntentService {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                } finally {
+                } catch (NullPointerException f) {
+                    Log.d(TAG, "run: NullPointered");
+                }
+                finally {
                     handler.postDelayed(listeningThread, 500);
                 }
             }
@@ -423,6 +434,9 @@ public class MyBtService extends IntentService {
             if (mNotificationManager == null){
                 mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             }
+        }
+        else{
+            mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         }
     }
 
