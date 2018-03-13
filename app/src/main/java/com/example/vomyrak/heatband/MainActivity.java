@@ -1,24 +1,34 @@
 package com.example.vomyrak.heatband;
 
+import android.app.AlertDialog;
+import android.app.TimePickerDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.NumberPicker;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -37,7 +47,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
-import com.example.vomyrak.heatband.MyBtService.MyBinder;
 import com.gc.materialdesign.views.ButtonRectangle;
 
 
@@ -62,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     protected ImageView ivBtConnected;
     protected ImageView ivBtSearching;
     protected ButtonRectangle applyChanges;
+    protected ButtonRectangle brTimer;
     protected TextView tempUnit;
     protected DiscreteSeekBar seekBar;
     protected ImageView ivBatteryLow;
@@ -69,6 +79,10 @@ public class MainActivity extends AppCompatActivity {
     protected Switch mode1Switch;
     protected Switch mode2Switch;
     protected Switch mode3Switch;
+    protected AlertDialog generalAlert;
+    protected AlertDialog timerAlert;
+    protected TextView tvDownCounter;
+
 
     //Create constant strings
     protected static final String mSettingStateVals = "stateVals";
@@ -95,15 +109,20 @@ public class MainActivity extends AppCompatActivity {
 
     //Service Related
     MyBtService myBtService;
-    boolean mServiceBound = false;
 
     //Temperature Unit
     protected static boolean dTempUnit = true;
+    protected static boolean timerSet = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //Initialise app variables and UI elements on creation of application
         super.onCreate(savedInstanceState);
+        IntentFilter newFilter = new IntentFilter();
+        newFilter.addAction("START_DISCOVERY");
+        newFilter.addAction("CANCEL_DISCOVERY");
+        newFilter.addAction("SET_TIMER_TEXT");
+        this.registerReceiver(mReceiver, newFilter);
         if (savedInstanceState != null){
             //If saved instance is present, get value from previously set instance state
             if (savedInstanceState.containsKey(mSettingStateVals)){
@@ -119,10 +138,8 @@ public class MainActivity extends AppCompatActivity {
         else{
             try {
                 File file = new File(mJsonFile);
-                Log.d("Json Checking", "onCreate: Json FIle READ");
-                Log.d("File InName", file.getName());
                 if (!file.exists()){
-                    //encode default values here;
+                    // First time startup
                     for (int i = 0; i < stateVal.length; i++){
                         stateVal[i] = 0;
                     }
@@ -148,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
         ivBtConnected = findViewById(R.id.btConnected);
         ivBtSearching = findViewById(R.id.btSearching);
         applyChanges = findViewById(R.id.change);
+        brTimer = findViewById(R.id.timer);
         seekBar.setProgress(seekBarProgress);
         progressBar.setProgress(((int) batteryLife));
         ivBatteryLow = findViewById(R.id.batteryLow);
@@ -168,20 +186,9 @@ public class MainActivity extends AppCompatActivity {
         brMode2.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
-                try {
-                    Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
-                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    outputStream.write("j".getBytes());
-                    outputStream.write(stateVal[0]);
-                    outputStream.write(stateVal[1]);
-                    outputStream.write(stateVal[2]);
-                    outputStream.write(" ".getBytes());
-                    Intent sendIntent = new Intent("SEND_DATA");
-                    sendIntent.putExtra("data", outputStream.toString());
-                    sendBroadcast(sendIntent);
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
+                Intent startFloatingActivity = new Intent(MainActivity.this,  FloatingActivity.class);
+                startFloatingActivity.putExtra("Mode", 2);
+                MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
             }
 
         });
@@ -189,19 +196,11 @@ public class MainActivity extends AppCompatActivity {
         brMode3.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                try {
-                    Intent sendIntent = new Intent("SEND_DATA");
-                    sendIntent.putExtra("data", "j\n");
-                    sendBroadcast(sendIntent);
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
+                Intent startFloatingActivity = new Intent(MainActivity.this,  FloatingActivity.class);
+                startFloatingActivity.putExtra("Mode", 3);
+                MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
             }
         });
-
-
-
-
 
         tempUnit.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -229,6 +228,84 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        brTimer.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                if (!timerSet) {
+                    final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
+                    LayoutInflater inflater = getLayoutInflater();
+                    View dialogView = inflater.inflate(R.layout.number_picker, (ConstraintLayout) findViewById(R.id.coordinatorLayout), false);
+                    aBuilder.setTitle("Select time");
+                    aBuilder.setView(dialogView);
+                    final NumberPicker numberPicker1 = dialogView.findViewById(R.id.number_picker);
+                    final NumberPicker numberPicker2 = dialogView.findViewById(R.id.number_picker2);
+                    final TextView tvTimer = dialogView.findViewById(R.id.timer_display);
+                    tvDownCounter = findViewById(R.id.count_down);
+                    numberPicker1.setMaxValue(11);
+                    numberPicker2.setMaxValue(59);
+                    numberPicker1.setMinValue(0);
+                    numberPicker2.setMinValue(0);
+                    numberPicker1.setWrapSelectorWheel(true);
+                    numberPicker2.setWrapSelectorWheel(true);
+                    String timerString = String.valueOf(numberPicker1.getValue()) + " hours " + String.valueOf(numberPicker2.getValue()) + " minutes";
+                    tvTimer.setText(timerString);
+                    numberPicker1.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+                        @Override
+                        public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                            String timerString = String.valueOf(i1) + " hours " + String.valueOf(numberPicker2.getValue()) + " minutes";
+                            tvTimer.setText(timerString);
+                        }
+                    });
+                    numberPicker2.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+                        @Override
+                        public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                            String timerString = String.valueOf(numberPicker1.getValue()) + " hours " + String.valueOf(i1) + " minutes";
+                            tvTimer.setText(timerString);
+                        }
+                    });
+                    aBuilder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Log.d("positive", "onClick: ");
+                            Intent setTimerIntent = new Intent();
+                            setTimerIntent.setAction("START_TIMER");
+                            setTimerIntent.putExtra("millisToFuture", (numberPicker1.getValue() * 3600 + numberPicker2.getValue() * 60) * 1000);
+                            setTimerIntent.putExtra("interval", 1000 * 60);
+                            sendBroadcast(setTimerIntent);
+                            timerSet = true;
+                        }
+                    });
+                    aBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Log.d("Negative", "Onclick: ");
+
+                        }
+                    });
+                    timerAlert = aBuilder.create();
+                    timerAlert.show();
+                }
+                else{
+                    final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
+                    LayoutInflater inflater = getLayoutInflater();
+                    View dialogView = inflater.inflate(R.layout.timer_set, (ConstraintLayout) findViewById(R.id.coordinatorLayout), false);
+                    aBuilder.setTitle("Time Till Heater Turns off:");
+                    aBuilder.setView(dialogView);
+                    aBuilder.setNeutralButton("Reset", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Log.d("Reset Timer", "onClick: ");
+                            Intent setTimerIntent = new Intent();
+                            setTimerIntent.setAction("RESET_TIMER");
+                            sendBroadcast(setTimerIntent);
+                            timerSet = false;
+                        }
+                    });
+                    timerAlert = aBuilder.create();
+                    timerAlert.show();
+                }
+            }
+        });
 
         seekBar.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
             @Override
@@ -292,54 +369,54 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    protected void errorMessage(String error){
+        final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MainActivity.this  );
+        alertBuilder.setTitle("Notification")
+                .setMessage(error)
+                .setCancelable(false)
+                .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Intent endServiceIntent = new Intent();
+                        endServiceIntent.setAction("END_SERVICE");
+                        sendBroadcast(endServiceIntent);
+                        finish();
+                    }
+                });
+        generalAlert = alertBuilder.create();
+        generalAlert.show();
+    }
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == rRequestBt){
             if (resultCode == 0){
-                Toast.makeText(getApplicationContext(), "The user decided to deny bluetooth access", Toast.LENGTH_SHORT).show();
+                //errorMessage("The user decided to deny bluetooth access");
                 ivBtConnected.setVisibility(View.INVISIBLE);
                 ivBtSearching.setVisibility(View.INVISIBLE);
             }
             else{
                 Intent intent = new Intent(this, MyBtService.class);
                 startService(intent);
-                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             }
         }
-        if (requestCode == rRequestZoneSetting){
+        else if (requestCode == rRequestZoneSetting){
             if (resultCode == RESULT_OK){
                 saveFile();
             }
         }
-        if (requestCode == rRequestBtScan){
+        else if (requestCode == rRequestBtScan){
             if (resultCode == RESULT_OK) {
                 Intent intent = new Intent(this, MyBtService.class);
                 startService(intent);
-                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             }
         }
     }
 
 
 
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            MyBinder binder = (MyBinder) iBinder;
-            myBtService = binder.getService();
-            mServiceBound = true;
-
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mServiceBound = false;
-
-        }
-
-
-    };
     @Override
     protected void onStart() {super.onStart();}
 
@@ -356,6 +433,11 @@ public class MainActivity extends AppCompatActivity {
             }
             else if ("CANCEL_DISCOVERY".equals(action)){
                 bluetoothAdapter.cancelDiscovery();
+            }
+            else if ("SET_TIMER_TEXT".equals(action)){
+                if (tvDownCounter != null){
+                    tvDownCounter.setText(intent.getStringExtra("data"));
+                }
             }
         }
     };
@@ -392,6 +474,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
+        this.unregisterReceiver(mReceiver);
     }
 
     @Override
@@ -400,31 +483,6 @@ public class MainActivity extends AppCompatActivity {
         outState.putByteArray(mSettingStateVals, stateVal);
         outState.putByte(mBatteryLife, batteryLife);
         outState.putInt(mSeekBarProgress, seekBarProgress);
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     //Json Handler
@@ -440,6 +498,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e){
             Log.d("Cannot write file", "saveFile: ");
             e.printStackTrace();
+            errorMessage("The user decided to deny bluetooth access");
         }
     }
     public void loadFile(){

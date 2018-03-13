@@ -16,6 +16,7 @@ import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -65,13 +66,13 @@ import static com.example.vomyrak.heatband.MainActivity.lastDeviceAddress;
 
 public class MyBtService extends IntentService {
     protected static final String TAG ="MyBtService";
-    private final IBinder mIBinder = new MyBinder();
     protected InputStream btIn;
     protected OutputStream btOut;
     protected Thread btThread;
     protected Handler timerHandler;
     protected WritingThread writingThread;
     protected Thread listeningThread;
+    protected Thread timerThread;
 
     protected static final String mConfig = "Config";
     protected static int serviceId;
@@ -80,10 +81,7 @@ public class MyBtService extends IntentService {
     protected static final String CHANNEL_ID = "Heatband";
     private NotificationManager mNotificationManager;
     protected boolean lowBatteryNotified = false;
-    protected boolean
-    protected class MyBinder extends Binder{
-        MyBtService getService(){return MyBtService.this;}
-    }
+
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -92,6 +90,27 @@ public class MyBtService extends IntentService {
             if (action.equals("SEND_DATA")){
                String data = intent.getStringExtra("data");
                writingThread.handler.sendMessage(getMessage(data));
+            }
+            else if (action.equals("TURN_OFF")){
+                writingThread.handler.sendMessage(getMessage("k0,0,0 "));
+            }
+            else if (action.equals("END_SERVICE")){
+                unregisterReceiver(mReceiver);
+                if (bluetoothAdapter.isDiscovering()){
+                    bluetoothAdapter.cancelDiscovery();
+                }
+                stopSelf();
+            }
+            else if (action.equals("START_TIMER")){
+                long millisToFuture = intent.getLongExtra("millisToFuture", 0);
+                long interval = intent.getLongExtra("interval", 0);
+                timerThread = new Thread(new TimerThread(millisToFuture, interval));
+            }
+            else if (action.equals("RESET_TIMER")){
+                if (timerThread.isAlive()){
+                    timerThread.interrupt();
+                    timerThread = null;
+                }
             }
         }
     };
@@ -147,29 +166,13 @@ public class MyBtService extends IntentService {
                 timerHandler.postDelayed(btThread, 1000 * 5);
             }
         }
+
     }
 
     public MyBtService() {
         super(TAG);
     }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        Log.v(TAG, "in onBind");
-        return mIBinder;
-    }
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        Log.v(TAG, "in OnRebind");
-        return super.onUnbind(intent);
-    }
-
-    @Override
-    public void onRebind(Intent intent) {
-        Log.v(TAG, "in OnUnbind");
-        super.onRebind(intent);
-    }
 
     private boolean matchedUUID(BluetoothDevice bt){
         for (ParcelUuid uuid : bt.getUuids()){
@@ -203,7 +206,13 @@ public class MyBtService extends IntentService {
         btThread.run();
 
         listeningThread.run();
-        this.registerReceiver(mReceiver, new IntentFilter("SEND_DATA"));
+        IntentFilter btServiceFilter = new IntentFilter();
+        btServiceFilter.addAction("SEND_DATA");
+        btServiceFilter.addAction("START_TIMER");
+        btServiceFilter.addAction("RESET_TIMER");
+        btServiceFilter.addAction("END_SERVICE");
+        btServiceFilter.addAction("TURN_OFF");
+        this.registerReceiver(mReceiver, btServiceFilter);
         return START_STICKY;
     }
 
@@ -266,39 +275,40 @@ public class MyBtService extends IntentService {
             getApplicationContext().startActivity(enableBtIntent);
         }
         if (bluetoothSocket == null) {
-            try {
-                pairedDevices = bluetoothAdapter.getBondedDevices();
-                if (pairedDevices.size() > 0) {
-                    for (BluetoothDevice bt : pairedDevices) {
-                        if (matchedUUID(bt)) {
-                            DEVICE_ADDRESS = bt.getAddress();
-                            DEVICE_NAME = bt.getName();
-                            break;
-                        } else {
-                            //No matched devices
+
+                try {
+                    if(lastDeviceAddress.equals(null)) {
+                        pairedDevices = bluetoothAdapter.getBondedDevices();
+                        if (pairedDevices.size() > 0) {
+                            for (BluetoothDevice bt : pairedDevices) {
+                                if (matchedUUID(bt)) {
+                                    DEVICE_ADDRESS = bt.getAddress();
+                                    DEVICE_NAME = bt.getName();
+                                    break;
+                                } else {
+                                    //No matched devices
+                                }
+                            }
                         }
                     }
+                    else{
+                        DEVICE_ADDRESS = lastDeviceAddress;
+                    }
                     try {
-                        connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
-                        bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
-                        bluetoothSocket.connect();
-                        bluetoothAdapter.cancelDiscovery();
-                        btIn = bluetoothSocket.getInputStream();
-                        btOut = bluetoothSocket.getOutputStream();
+                        establishConnection();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
                 }
-            } catch (Exception e) {
-                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-            }
+
+
         }
         else{
             if(!bluetoothSocket.isConnected()){
                 try {
-                    connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
-                    bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
-                    bluetoothSocket.connect();
+                    establishConnection();
                 } catch (IOException e){
                     e.printStackTrace();
                 }
@@ -306,6 +316,22 @@ public class MyBtService extends IntentService {
         }
     }
 
+
+    private void establishConnection() throws IOException{
+        connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
+        bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
+        bluetoothSocket.connect();
+        if (bluetoothAdapter.isDiscovering()) {
+            bluetoothAdapter.cancelDiscovery();
+        }
+        btIn = bluetoothSocket.getInputStream();
+        btOut = bluetoothSocket.getOutputStream();
+        lastDeviceAddress = DEVICE_ADDRESS;
+        Intent updateBtStatusIntent = new Intent();
+        updateBtStatusIntent.setAction("UPDATE_BT_STATUS");
+        updateBtStatusIntent.putExtra("Connected?", true);
+        sendBroadcast(updateBtStatusIntent);
+    }
     protected boolean decodeMessage(String data){
         char opcode = data.charAt(0);
         data = data.substring(1);
@@ -433,6 +459,39 @@ public class MyBtService extends IntentService {
         }
     }
 
+    public class TimerThread implements Runnable{
+        CountDownTimer countDownTimer;
+        long millisInFuture, interval;
+        TimerThread(long millisInFuture, long interval){
+            this.millisInFuture = millisInFuture;
+            this.interval = interval;
+        }
+
+        @Override
+        public void run() {
+            Log.d(TAG, "TimerThread.run()");
+            countDownTimer = new CountDownTimer(millisInFuture, interval) {
+                @Override
+                public void onTick(long l) {
+                    Intent countdownIntent = new Intent();
+                    countdownIntent.setAction("SET_TIMER_TEXT");
+                    String tempString = l / (1000*3600) + " Hours " + (l % (1000*3600)) / (1000*60) + "Minutes";
+                    countdownIntent.putExtra("data", tempString);
+                    sendBroadcast(countdownIntent);
+                }
+
+                @Override
+                public void onFinish() {
+                    Intent countdownIntent = new Intent();
+                    countdownIntent.setAction("SET_TIMER_TEXT");
+                    countdownIntent.putExtra("data", "0");
+                    sendBroadcast(countdownIntent);
+                }
+            };
+            countDownTimer.start();
+        }
+
+    }
     private void registerNotification(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Create the NotificationChannel, but only on API 26+ because

@@ -91,7 +91,7 @@ public class ScanActivity extends AppCompatActivity {
         super.onPause();
         try {
             this.unregisterReceiver(bReciever);
-            if (result == RESULT_OK){
+            if (bluetoothAdapter.isDiscovering()){
                 bluetoothAdapter.cancelDiscovery();
             }
             finish();
@@ -99,6 +99,7 @@ public class ScanActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
 
     private final BroadcastReceiver bReciever = new BroadcastReceiver() {
         @Override
@@ -123,7 +124,6 @@ public class ScanActivity extends AppCompatActivity {
                                         e.printStackTrace();
                                     }
                                     ScanActivity.this.setResult(RESULT_OK);
-                                    lastDeviceAddress = device.getAddress();
                                     finish();
                                 }
                             })
