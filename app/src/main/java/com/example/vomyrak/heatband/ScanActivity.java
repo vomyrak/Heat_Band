@@ -69,7 +69,7 @@ public class ScanActivity extends AppCompatActivity {
             }
         });
         mRecyclerView.setAdapter(mDeviceAdapter);
-        getApplicationContext().registerReceiver(bReciever, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        this.registerReceiver(bReciever, new IntentFilter(BluetoothDevice.ACTION_FOUND));
         mRecyclerView.setVisibility(View.VISIBLE);
         mRefresh.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -89,14 +89,16 @@ public class ScanActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        if (bluetoothAdapter.isDiscovering()){
+            bluetoothAdapter.cancelDiscovery();
+        }
         try {
             this.unregisterReceiver(bReciever);
-            if (bluetoothAdapter.isDiscovering()){
-                bluetoothAdapter.cancelDiscovery();
-            }
-            finish();
+
         } catch (IllegalArgumentException e){
             e.printStackTrace();
+        } finally {
+            finish();
         }
     }
 
