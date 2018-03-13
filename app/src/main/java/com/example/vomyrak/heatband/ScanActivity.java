@@ -59,8 +59,8 @@ public class ScanActivity extends AppCompatActivity {
             @Override
             public void onListItemClick(int clickedItemIndex) {
                 try {
-                    Method method = discoveredDevices.get(clickedItemIndex).getClass().getMethod("createBond", (Class[]) null);
-                    method.invoke(discoveredDevices.get(clickedItemIndex), (Object[]) null);
+                    //Method method = discoveredDevices.get(clickedItemIndex).getClass().getMethod("createBond", (Class[]) null);
+                    //method.invoke(discoveredDevices.get(clickedItemIndex), (Object[]) null);
                     setResult(RESULT_OK);
                     result = RESULT_OK;
                 } catch (Exception e){

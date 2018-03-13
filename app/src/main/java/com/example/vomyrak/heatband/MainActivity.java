@@ -1,36 +1,24 @@
 package com.example.vomyrak.heatband;
 
 import android.app.AlertDialog;
-import android.app.TimePickerDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
 import android.support.constraint.ConstraintLayout;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.daimajia.numberprogressbar.NumberProgressBar;
 import com.gc.materialdesign.views.Switch;
@@ -38,7 +26,6 @@ import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -240,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
                     final NumberPicker numberPicker1 = dialogView.findViewById(R.id.number_picker);
                     final NumberPicker numberPicker2 = dialogView.findViewById(R.id.number_picker2);
                     final TextView tvTimer = dialogView.findViewById(R.id.timer_display);
-                    tvDownCounter = findViewById(R.id.count_down);
+                    dialogView = inflater.inflate(R.layout.timer_set, (ConstraintLayout) findViewById(R.id.coordinatorLayout), false);
                     numberPicker1.setMaxValue(11);
                     numberPicker2.setMaxValue(59);
                     numberPicker1.setMinValue(0);
@@ -269,8 +256,10 @@ public class MainActivity extends AppCompatActivity {
                             Log.d("positive", "onClick: ");
                             Intent setTimerIntent = new Intent();
                             setTimerIntent.setAction("START_TIMER");
-                            setTimerIntent.putExtra("millisToFuture", (numberPicker1.getValue() * 3600 + numberPicker2.getValue() * 60) * 1000);
-                            setTimerIntent.putExtra("interval", 1000 * 60);
+                            long temp = (numberPicker1.getValue() * 3600 + numberPicker2.getValue() * 60) * 1000;
+                            setTimerIntent.putExtra("millisToFuture", temp);
+                            temp = 1000;
+                            setTimerIntent.putExtra("interval", temp);
                             sendBroadcast(setTimerIntent);
                             timerSet = true;
                         }
@@ -362,11 +351,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-
-
-
-
     }
 
     protected void errorMessage(String error){
@@ -435,8 +419,9 @@ public class MainActivity extends AppCompatActivity {
                 bluetoothAdapter.cancelDiscovery();
             }
             else if ("SET_TIMER_TEXT".equals(action)){
-                if (tvDownCounter != null){
-                    tvDownCounter.setText(intent.getStringExtra("data"));
+                if (tvDownCounter != null) {
+                    String data = intent.getStringExtra("data");
+                    tvDownCounter.setText(data);
                 }
             }
         }

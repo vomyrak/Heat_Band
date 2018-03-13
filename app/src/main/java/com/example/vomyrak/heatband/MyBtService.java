@@ -92,7 +92,7 @@ public class MyBtService extends IntentService {
                writingThread.handler.sendMessage(getMessage(data));
             }
             else if (action.equals("TURN_OFF")){
-                writingThread.handler.sendMessage(getMessage("k0,0,0 "));
+                writingThread.handler.sendMessage(getMessage("t0,0,0 "));
             }
             else if (action.equals("END_SERVICE")){
                 unregisterReceiver(mReceiver);
@@ -105,6 +105,7 @@ public class MyBtService extends IntentService {
                 long millisToFuture = intent.getLongExtra("millisToFuture", 0);
                 long interval = intent.getLongExtra("interval", 0);
                 timerThread = new Thread(new TimerThread(millisToFuture, interval));
+                timerThread.run();
             }
             else if (action.equals("RESET_TIMER")){
                 if (timerThread.isAlive()){
@@ -130,41 +131,17 @@ public class MyBtService extends IntentService {
         }
         @Override
         public void run() {
-            if (bluetoothSocket != null) {
-                Log.d(TAG, "BluetoothThread.run()");
-                try {
-                    if (bluetoothSocket.isConnected()) {
-                        Log.d(TAG, "BT Name: " + DEVICE_NAME + "\nBT Address: " + DEVICE_ADDRESS);
-                        randString = "a";
-                        randString += String.valueOf(random.nextInt(255));
-                        randString += ",";
-                        randString += String.valueOf(random.nextInt(255));
-                        randString += ",";
-                        randString += String.valueOf(random.nextInt(255));
-                        randString += " ";
-                        Log.d("Outgoing data = ", randString);
-                        writingThread.handler.sendMessage(getMessage(randString));
-                    }
-                    else{
-                        resetBluetooth();
-                    }
-                } catch (NullPointerException f) {
-                    try {
-                        connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
-                        bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
-                        bluetoothSocket.connect();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } finally {
-                    timerHandler.postDelayed(btThread, 1000 * 5);
-                }
-
-            }
-            else {
-                resetBluetooth();
-                timerHandler.postDelayed(btThread, 1000 * 5);
-            }
+            writingThread = new WritingThread();
+            writingThread.start();
+            listeningThread = new Thread(new ListeningThread());
+            listeningThread.run();
+            IntentFilter btServiceFilter = new IntentFilter();
+            btServiceFilter.addAction("SEND_DATA");
+            btServiceFilter.addAction("START_TIMER");
+            btServiceFilter.addAction("RESET_TIMER");
+            btServiceFilter.addAction("END_SERVICE");
+            btServiceFilter.addAction("TURN_OFF");
+            MyBtService.this.registerReceiver(mReceiver, btServiceFilter);
         }
 
     }
@@ -197,22 +174,12 @@ public class MyBtService extends IntentService {
                 .setContentTitle("Heat Band")
                 .setContentText("Low Battery")
                 .setPriority(NotificationCompat.PRIORITY_HIGH).build());
-        serviceId = startId;
-        writingThread = new WritingThread();
-        writingThread.start();
-        btThread = new Thread(new BluetoothThread(startId));
-        listeningThread = new Thread(new ListeningThread());
 
+        serviceId = startId;
+
+        btThread = new Thread(new BluetoothThread(startId));
         btThread.run();
 
-        listeningThread.run();
-        IntentFilter btServiceFilter = new IntentFilter();
-        btServiceFilter.addAction("SEND_DATA");
-        btServiceFilter.addAction("START_TIMER");
-        btServiceFilter.addAction("RESET_TIMER");
-        btServiceFilter.addAction("END_SERVICE");
-        btServiceFilter.addAction("TURN_OFF");
-        this.registerReceiver(mReceiver, btServiceFilter);
         return START_STICKY;
     }
 
