@@ -176,7 +176,9 @@ public class MainActivity extends AppCompatActivity {
                     outputStream.write(stateVal[1]);
                     outputStream.write(stateVal[2]);
                     outputStream.write(" ".getBytes());
-                    myBtService.sendBtData(outputStream.toByteArray());
+                    Intent sendIntent = new Intent("SEND_DATA");
+                    sendIntent.putExtra("data", outputStream.toString());
+                    sendBroadcast(sendIntent);
                 } catch (Exception e){
                     e.printStackTrace();
                 }
@@ -188,9 +190,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 try {
-                    myBtService.sendBtData("j\n".getBytes());
-
-
+                    Intent sendIntent = new Intent("SEND_DATA");
+                    sendIntent.putExtra("data", "j\n");
+                    sendBroadcast(sendIntent);
                 } catch (Exception e){
                     e.printStackTrace();
                 }
@@ -221,11 +223,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
                 //bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
-                Message message = Message.obtain();
-                Bundle bundle = new Bundle();
-                bundle.putString(mOutgoingData, "j255,0,255 ");
-                message.setData(bundle);
-                myBtService.writingThread.handler.sendMessage(message);
+                Intent sendIntent = new Intent("SEND_DATA");
+                sendIntent.putExtra("data", "j255,0,255 ");
+                sendBroadcast(sendIntent);
             }
         });
 
@@ -526,7 +526,9 @@ public class MainActivity extends AppCompatActivity {
         else{
             currentMode = newMode;
             if (myBtService != null) {
-                myBtService.sendBtData(("q" + String.valueOf(newMode)).getBytes());
+                Intent sendIntent = new Intent("SEND_DATA");
+                sendIntent.putExtra("data", "q" + String.valueOf(newMode));
+                sendBroadcast(sendIntent);
             }
         }
     }

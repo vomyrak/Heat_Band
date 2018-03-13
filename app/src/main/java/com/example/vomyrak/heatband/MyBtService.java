@@ -84,6 +84,24 @@ public class MyBtService extends IntentService {
         MyBtService getService(){return MyBtService.this;}
     }
 
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals("SEND_DATA")){
+               String data = intent.getStringExtra("data");
+               writingThread.handler.sendMessage(getMessage(data));
+            }
+        }
+    };
+
+    private Message getMessage(String data){
+        Bundle aBundle = new Bundle();
+        aBundle.putString(mOutgoingData, data);
+        Message newMessage = Message.obtain();
+        newMessage.setData(aBundle);
+        return newMessage;
+    }
     public class BluetoothThread implements Runnable{
         int serviceId;
         BluetoothThread(int serviceId){
@@ -105,11 +123,7 @@ public class MyBtService extends IntentService {
                         randString += String.valueOf(random.nextInt(255));
                         randString += " ";
                         Log.d("Outgoing data = ", randString);
-                        Bundle outgoingData = new Bundle();
-                        outgoingData.putString(mOutgoingData, randString);
-                        Message messageOut = Message.obtain();
-                        messageOut.setData(outgoingData);
-                        writingThread.handler.sendMessage(messageOut);
+                        writingThread.handler.sendMessage(getMessage(randString));
                     }
                     else{
                         resetBluetooth();
