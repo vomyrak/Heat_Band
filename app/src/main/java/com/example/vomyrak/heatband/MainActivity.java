@@ -154,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
         ivBtSearching = findViewById(R.id.btSearching);
         applyChanges = findViewById(R.id.change);
         ivTimerOff = findViewById(R.id.timerOff);
+        ivTimerOn = findViewById(R.id.timerOn);
         seekBar.setProgress(seekBarProgress);
         progressBar.setProgress(((int) batteryLife));
         ivBatteryLow = findViewById(R.id.batteryLow);
@@ -216,6 +217,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+
         ivTimerOff.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
@@ -263,6 +266,10 @@ public class MainActivity extends AppCompatActivity {
                             setTimerIntent.putExtra("interval", temp);
                             sendBroadcast(setTimerIntent);
                             timerSet = true;
+                            ivTimerOff.setVisibility(View.GONE);
+                            ivTimerOn.setVisibility(View.VISIBLE);
+
+
                         }
                     });
                     aBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -274,26 +281,36 @@ public class MainActivity extends AppCompatActivity {
                     });
                     timerAlert = aBuilder.create();
                     timerAlert.show();
+
                 }
-                else{
-                    final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
-                    LayoutInflater inflater = getLayoutInflater();
-                    View dialogView = inflater.inflate(R.layout.timer_set, (ConstraintLayout) findViewById(R.id.coordinatorLayout), false);
-                    aBuilder.setTitle("Time Till Heater Turns off:");
-                    aBuilder.setView(dialogView);
-                    aBuilder.setNeutralButton("Reset", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Log.d("Reset Timer", "onClick: ");
-                            Intent setTimerIntent = new Intent();
-                            setTimerIntent.setAction("RESET_TIMER");
-                            sendBroadcast(setTimerIntent);
-                            timerSet = false;
-                        }
-                    });
-                    timerAlert = aBuilder.create();
-                    timerAlert.show();
-                }
+
+            }
+        });
+
+
+        ivTimerOn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
+                LayoutInflater inflater = getLayoutInflater();
+                View dialogView = inflater.inflate(R.layout.timer_set, (ConstraintLayout) findViewById(R.id.coordinatorLayout), false);
+                aBuilder.setTitle("Time Till Heater Turns off:");
+                aBuilder.setView(dialogView);
+                aBuilder.setNeutralButton("Reset", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Log.d("Reset Timer", "onClick: ");
+                        Intent setTimerIntent = new Intent();
+                        setTimerIntent.setAction("RESET_TIMER");
+                        sendBroadcast(setTimerIntent);
+                        timerSet = false;
+                        ivTimerOn.setVisibility(View.GONE);
+                        ivTimerOff.setVisibility(View.VISIBLE);
+
+                    }
+                });
+                timerAlert = aBuilder.create();
+                timerAlert.show();
             }
         });
 
