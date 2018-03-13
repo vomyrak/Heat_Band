@@ -7,7 +7,7 @@
     <string name="Mode_2">Mode 2</string>
     <string name="Mode_1">Mode 1</string>
     <string name="applyChanges">Apply Changes</string>
-
+    <string name="setTimer">Set Timer</string>
     <string name="Temperature">Temperature</string>
     <string name="Celsius">°C</string>
     <string name="Fahrenheit">°F</string>
@@ -27,5 +27,6 @@
 
     <string name="channel_name">This is a channel</string>
     <string name="channel_description">This is a description</string>
+    <string name="refresh">Refresh</string>
 
 </resources>

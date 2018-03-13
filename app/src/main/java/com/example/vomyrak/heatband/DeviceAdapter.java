@@ -11,14 +11,13 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import static com.example.vomyrak.heatband.ScanActivity.discoveredDevices;
 /**
  * Created by VomyraK on 07/03/2018.
  */
 
 public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.AdapterViewHolder> {
 
-    private ArrayList<BluetoothDevice> mDeviceData = new ArrayList<>();
     private final RecyclerViewClickListener mListener;
     private static int viewHolderCount;
     private int mNumberItems;
@@ -50,8 +49,8 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.AdapterVie
 
     @Override
     public void onBindViewHolder(AdapterViewHolder holder, int position) {
-        String displayedName = mDeviceData.get(position).getName();
-        String displayedAddress = mDeviceData.get(position).getAddress();
+        String displayedName = discoveredDevices.get(position).getName();
+        String displayedAddress = discoveredDevices.get(position).getAddress();
         holder.mDeviceName.setText(displayedName);
         holder.mDeviceAddress.setText(displayedAddress);
     }
@@ -66,12 +65,12 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.AdapterVie
 
     @Override
     public int getItemCount() {
-        if (mDeviceData == null) return 0;
-        return mDeviceData.size();
+        if (discoveredDevices == null) return 0;
+        return discoveredDevices.size();
     }
 
     public void setDeviceData(BluetoothDevice data){
-        mDeviceData.add(data);
+        discoveredDevices.add(data);
         notifyDataSetChanged();
     }
 }
