@@ -15,7 +15,7 @@
         android:id="@+id/current_display"
         android:layout_width="wrap_content"
         android:layout_height="207dp"
-        android:background="@color/currentDisplay"
+        android:background="@drawable/gradient"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -62,7 +62,6 @@
             android:layout_height="45dp"
             android:layout_marginEnd="48dp"
             android:layout_marginStart="32dp"
-            android:background="@color/currentDisplay"
             android:fontFamily="@font/roboto"
             android:text="@string/Celsius"
             android:textColor="@color/text_light"
@@ -72,8 +71,7 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toEndOf="@+id/current_temp"
             app:layout_constraintTop_toTopOf="@+id/current_temp"
-            app:layout_constraintVertical_bias="0.0"
-            />
+            app:layout_constraintVertical_bias="0.0" />
 
 
         <TextView
@@ -162,7 +160,7 @@
         android:layout_height="30dp"
         android:layout_marginEnd="60dp"
         android:layout_marginTop="20dp"
-        app:dsb_indicatorColor="@color/background"
+        app:dsb_indicatorColor="@color/reached"
         app:dsb_indicatorTextAppearance="@color/text_light"
         app:dsb_max="6"
         app:dsb_min="0dp"
@@ -182,7 +180,7 @@
         android:layout_height="40dp"
         android:layout_marginBottom="8dp"
         android:layout_marginTop="8dp"
-        android:background="@color/currentDisplay"
+        android:background="@color/reached"
         app:layout_constraintBottom_toBottomOf="@+id/mode_2"
         app:layout_constraintStart_toStartOf="@+id/switch3"
         app:layout_constraintTop_toTopOf="@+id/mode_2" />
@@ -194,7 +192,7 @@
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="96dp"
         android:layout_marginTop="8dp"
-        android:background="@color/currentDisplay"
+        android:background="@color/reached"
         app:layout_constraintBottom_toBottomOf="@+id/mode_3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/mode_3" />
@@ -205,7 +203,7 @@
         android:layout_height="40dp"
         android:layout_marginBottom="8dp"
         android:layout_marginTop="8dp"
-        android:background="@color/currentDisplay"
+        android:background="@color/reached"
         app:layout_constraintBottom_toBottomOf="@+id/mode_1"
         app:layout_constraintStart_toStartOf="@+id/switch2"
         app:layout_constraintTop_toTopOf="@+id/mode_1" />

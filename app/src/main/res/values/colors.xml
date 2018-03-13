@@ -5,12 +5,13 @@
     <color name="colorAccent">#ff4081</color>
     <color name="text_light">#FFFFFF</color>
     <color name="text_dark">#4E342E</color>
-    <color name="reached">#1A237E</color>
-    <color name="unreached">#616161</color>
+    <color name="reached">#039BE5</color>
+    <color name="unreached">#BDBDBD</color>
 
-    <color name="floatingColor">#9fa8da</color>
-    <color name="currentDisplay">#1A237E</color>
-    <color name="background">#E8EAF6</color>
-    <color name="button">#303F9F</color>
+    <color name="floatingColor">#81D4FA</color>
+    <color name="tempWindowLight">#4FC3F7</color>
+    <color name="tempWindowDark">#039BE5</color>
+    <color name="background">#E1F5FE</color>
+    <color name="button">#039BE5</color>
 
 </resources>
