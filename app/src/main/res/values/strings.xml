@@ -7,7 +7,8 @@
     <string name="Mode_2">Mode 2</string>
     <string name="Mode_1">Mode 1</string>
     <string name="applyChanges">Apply Changes</string>
-    <string name="setTimer">Set Timer</string>
+    <string name="TimerOn">Timer On</string>
+    <string name="TimerOff">Timer Off</string>
     <string name="Temperature">Temperature</string>
     <string name="Celsius">°C</string>
     <string name="Fahrenheit">°F</string>

@@ -57,8 +57,9 @@ public class MainActivity extends AppCompatActivity {
     protected ButtonRectangle brMode3;
     protected ImageView ivBtConnected;
     protected ImageView ivBtSearching;
-    protected ButtonRectangle applyChanges;
-    protected ButtonRectangle brTimer;
+    protected ImageView applyChanges;
+    protected ImageView ivTimerOn;
+    protected ImageView ivTimerOff;
     protected TextView tempUnit;
     protected DiscreteSeekBar seekBar;
     protected ImageView ivBatteryLow;
@@ -152,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
         ivBtConnected = findViewById(R.id.btConnected);
         ivBtSearching = findViewById(R.id.btSearching);
         applyChanges = findViewById(R.id.change);
-        brTimer = findViewById(R.id.timer);
+        ivTimerOff = findViewById(R.id.timerOff);
         seekBar.setProgress(seekBarProgress);
         progressBar.setProgress(((int) batteryLife));
         ivBatteryLow = findViewById(R.id.batteryLow);
@@ -215,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        brTimer.setOnClickListener(new View.OnClickListener(){
+        ivTimerOff.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
                 if (!timerSet) {
