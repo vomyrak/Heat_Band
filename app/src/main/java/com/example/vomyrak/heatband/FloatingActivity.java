@@ -57,6 +57,10 @@ public class FloatingActivity extends AppCompatActivity {
                 } finally {
                     Intent intent = new Intent();
                     setResult(RESULT_OK, intent);
+                    Intent sendDataIntent = new Intent();
+                    sendDataIntent.setAction("SEND_DATA");
+                    sendDataIntent.putExtra("data", ((mode == 1)? "n" : ((mode == 2)? "o" : "p"))
+                            + String.valueOf(stateVal[offset]) + "," + String.valueOf(stateVal[offset+1]) + "," + String.valueOf(stateVal[offset+2]) + "");
                     finish();
                 }
             }

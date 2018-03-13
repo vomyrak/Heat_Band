@@ -77,11 +77,8 @@ public class MyBtService extends IntentService {
 
     protected static final String mConfig = "Config";
     protected static int serviceId;
-    protected Random random = new Random();
-    protected String randString;
     protected static final String CHANNEL_ID = "Heatband";
     private NotificationManager mNotificationManager;
-    protected boolean lowBatteryNotified = false;
 
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -230,6 +227,11 @@ public class MyBtService extends IntentService {
     public void onDestroy() {
         super.onDestroy();
         this.unregisterReceiver(mReceiver);
+        try {
+            bluetoothSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void resetBluetooth(){

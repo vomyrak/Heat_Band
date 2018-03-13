@@ -141,7 +141,6 @@ public class ScanActivity extends AppCompatActivity {
                 }
 
                 else {
-                    discoveredDevices.add(device);
                     addItemForDisplay(device);
                 }
             }

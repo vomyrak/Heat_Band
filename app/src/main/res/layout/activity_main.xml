@@ -177,7 +177,7 @@
         android:layout_marginTop="20dp"
         app:dsb_indicatorColor="@color/background"
         app:dsb_indicatorTextAppearance="@color/text_light"
-        app:dsb_max="6"
+        app:dsb_max="255"
         app:dsb_min="0dp"
         app:dsb_progressColor="@color/reached"
         app:dsb_trackColor="@color/unreached"

@@ -274,6 +274,10 @@ public class MainActivity extends AppCompatActivity {
                             temp = 1000;
                             setTimerIntent.putExtra("interval", temp);
                             sendBroadcast(setTimerIntent);
+                            Intent sendIntent = new Intent("SEND_DATA");
+                            sendIntent.putExtra("data", "u" + String.valueOf(numberPicker1.getValue())
+                                    + "," + String.valueOf(numberPicker2.getValue()) + ",0, ");
+                            sendBroadcast(sendIntent);
                             timerSet = true;
                         }
                     });
@@ -392,7 +396,11 @@ public class MainActivity extends AppCompatActivity {
             MainActivity.this.registerReceiver(mBrocastReceiver, filter);
         }
         public void unregisterReceiver(){
-            MainActivity.this.unregisterReceiver(mBrocastReceiver);
+            try {
+                MainActivity.this.unregisterReceiver(mBrocastReceiver);
+            } catch (IllegalArgumentException e){
+                e.printStackTrace();
+            }
         }
     }
     protected void errorMessage(String error){
@@ -479,6 +487,12 @@ public class MainActivity extends AppCompatActivity {
             stateVal[offset + 1] = NewData[1];
             stateVal[offset + 2] = NewData[2];
         }
+        requestDeviceSync();
+    }
+    private void requestDeviceSync(){
+        Intent requestIntent = new Intent();
+        requestIntent.setAction("SEND_DATA");
+        requestIntent.putExtra("data", "m0,0,0 ");
     }
 
     @Override
@@ -607,6 +621,9 @@ public class MainActivity extends AppCompatActivity {
         if (newMode == currentMode){
             if ((!mode1Switch.isCheck()) && (!mode2Switch.isCheck()) && (!mode3Switch.isCheck())) {
                 currentMode = 0;
+                Intent sendIntent = new Intent("SEND_DATA");
+                sendIntent.putExtra("data", "t0,0,0 ");
+                sendBroadcast(sendIntent);
                 //TODO send op code to turn off heating
             }
         }
@@ -614,7 +631,7 @@ public class MainActivity extends AppCompatActivity {
             currentMode = newMode;
             if (myBtService != null) {
                 Intent sendIntent = new Intent("SEND_DATA");
-                sendIntent.putExtra("data", "q" + String.valueOf(newMode));
+                sendIntent.putExtra("data", "q" + String.valueOf(newMode) + ",0,0 ");
                 sendBroadcast(sendIntent);
             }
         }
