@@ -1,6 +1,8 @@
 package com.example.vomyrak.heatband;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -29,13 +31,16 @@ import static com.example.vomyrak.heatband.MainActivity.DEVICE_NAME;
 import static com.example.vomyrak.heatband.MainActivity.DEVICE_ADDRESS;
 import static com.example.vomyrak.heatband.MainActivity.bluetoothAdapter;
 import static com.example.vomyrak.heatband.MainActivity.bluetoothSocket;
+import static com.example.vomyrak.heatband.MainActivity.myUUID;
+import static com.example.vomyrak.heatband.MainActivity.lastDeviceAddress;
 
 public class ScanActivity extends AppCompatActivity {
 
-    private ArrayList<BluetoothDevice> discoveredDevices = new ArrayList<>();
+    protected static ArrayList<BluetoothDevice> discoveredDevices = new ArrayList<>();
     private RecyclerView mRecyclerView;
     private DeviceAdapter mDeviceAdapter;
     private ProgressDialog mProgressDlg;
+    private AlertDialog mAlertDlg;
     private Button mRefresh;
     private int REQUEST_COURSE_PERMISSION = 10;
     private int result = 0;
@@ -72,7 +77,9 @@ public class ScanActivity extends AppCompatActivity {
                 if (bluetoothAdapter.isDiscovering()){
                     bluetoothAdapter.cancelDiscovery();
                 }
+                discoveredDevices.clear();
                 scanningRoutine();
+                mDeviceAdapter.notifyDataSetChanged();
             }
         });
         scanningRoutine();
@@ -99,9 +106,42 @@ public class ScanActivity extends AppCompatActivity {
             String action = intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 Log.d("DEVICELIST", "Bluetooth device found\n");
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                discoveredDevices.add(device);
-                addItemForDisplay(device);
+                final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (device.getAddress().equals("98:D3:32:11:36:49")){
+                    bluetoothAdapter.cancelDiscovery();
+                    mProgressDlg.dismiss();
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(ScanActivity.this);
+                    builder.setMessage("Compatible Device Found\nat Address "+device.getAddress()+"\nConnect?")
+                            .setCancelable(false)
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    try {
+                                        Method method = device.getClass().getMethod("createBond", (Class[]) null);
+                                        method.invoke(device, (Object[]) null);
+                                    } catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                    ScanActivity.this.setResult(RESULT_OK);
+                                    lastDeviceAddress = device.getAddress();
+                                    finish();
+                                }
+                            })
+                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    ScanActivity.this.setResult(-2);
+                                    finish();
+                                }
+                            });
+                    mAlertDlg = builder.create();
+                    mAlertDlg.show();
+                }
+
+                else {
+                    discoveredDevices.add(device);
+                    addItemForDisplay(device);
+                }
             }
         }
     };

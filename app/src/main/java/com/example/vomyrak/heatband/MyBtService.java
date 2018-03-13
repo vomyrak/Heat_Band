@@ -60,8 +60,8 @@ import static com.example.vomyrak.heatband.MainActivity.mOutgoingData;
 import static com.example.vomyrak.heatband.MainActivity.rRequestBt;
 import static com.example.vomyrak.heatband.MainActivity.stateVal;
 import static com.example.vomyrak.heatband.MainActivity.tempVal;
-import static com.example.vomyrak.heatband.MainActivity.btDiscoveryDone;
 import static com.example.vomyrak.heatband.MainActivity.currentMode;
+import static com.example.vomyrak.heatband.MainActivity.lastDeviceAddress;
 
 public class MyBtService extends IntentService {
     protected static final String TAG ="MyBtService";
@@ -80,6 +80,7 @@ public class MyBtService extends IntentService {
     protected static final String CHANNEL_ID = "Heatband";
     private NotificationManager mNotificationManager;
     protected boolean lowBatteryNotified = false;
+    protected boolean
     protected class MyBinder extends Binder{
         MyBtService getService(){return MyBtService.this;}
     }
@@ -202,7 +203,7 @@ public class MyBtService extends IntentService {
         btThread.run();
 
         listeningThread.run();
-
+        this.registerReceiver(mReceiver, new IntentFilter("SEND_DATA"));
         return START_STICKY;
     }
 
@@ -250,6 +251,12 @@ public class MyBtService extends IntentService {
         return "";
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        this.unregisterReceiver(mReceiver);
+    }
+
     protected void resetBluetooth(){
         bluetoothAdapter = null;
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -257,13 +264,6 @@ public class MyBtService extends IntentService {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             enableBtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getApplicationContext().startActivity(enableBtIntent);
-        }
-        if (!btDiscoveryDone){
-            Intent broadcastIntent = new Intent();
-            broadcastIntent.setAction("START_DISCOVERY");
-            sendBroadcast(broadcastIntent);
-            btDiscoveryDone = true;
-            return;
         }
         if (bluetoothSocket == null) {
             try {

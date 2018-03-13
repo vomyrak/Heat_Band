@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
     protected static BluetoothDevice connectedDevice;
     protected static Set<BluetoothDevice> pairedDevices;
     protected static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    protected static String lastDeviceAddress;
 
     //A list of request codes
     protected static final int rRequestBt = 1;
@@ -95,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
     //Service Related
     MyBtService myBtService;
     boolean mServiceBound = false;
-    protected static boolean btDiscoveryDone = false;
 
     //Temperature Unit
     protected static boolean dTempUnit = true;
@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
                     seekBarProgress = 4;
                     batteryLife = 100;
                     Intent startupIntent = new Intent(this, ScanActivity.class);
-                    //startActivityForResult(startupIntent, 1);
+                    startActivityForResult(startupIntent, 1);
                 }
             } catch (Exception e){
                 finish();
@@ -290,7 +290,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
     }
 
     @Override
@@ -299,7 +298,8 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == rRequestBt){
             if (resultCode == 0){
                 Toast.makeText(getApplicationContext(), "The user decided to deny bluetooth access", Toast.LENGTH_SHORT).show();
-                ivBtConnected.setVisibility(View.VISIBLE);
+                ivBtConnected.setVisibility(View.INVISIBLE);
+                ivBtSearching.setVisibility(View.INVISIBLE);
             }
             else{
                 Intent intent = new Intent(this, MyBtService.class);
@@ -314,9 +314,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (requestCode == rRequestBtScan){
             if (resultCode == RESULT_OK) {
-                //Intent intent = new Intent(this, MyBtService.class);
-                //startService(intent);
-                //bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+                Intent intent = new Intent(this, MyBtService.class);
+                startService(intent);
+                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             }
         }
     }
@@ -483,6 +483,7 @@ public class MainActivity extends AppCompatActivity {
             newObject.put("Mode 3", newArray);
             newObject.put("Battery", batteryLife);
             newObject.put("Seekbar", seekBarProgress);
+            newObject.put("Bt Address", lastDeviceAddress);
             String jsonString = newObject.toString();
             out.writeUTF(jsonString);
         } catch (Exception e){
@@ -511,6 +512,9 @@ public class MainActivity extends AppCompatActivity {
             stateVal[9] = (byte)newArray.getInt(0) ;
             stateVal[10] = (byte)newArray.getInt(1) ;
             stateVal[11] = (byte)newArray.getInt(2) ;
+            lastDeviceAddress = newObject.getString("Bt Address");
+            batteryLife = (byte)newObject.getInt("Battery");
+            seekBarProgress = (byte)newObject.getInt("Seekbar");
         } catch (Exception e) {
             e.printStackTrace();
         }
