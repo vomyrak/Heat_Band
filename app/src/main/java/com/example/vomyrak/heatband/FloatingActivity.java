@@ -46,23 +46,15 @@ public class FloatingActivity extends AppCompatActivity {
                 stateVal[offset] = zone1.getProgress();
                 stateVal[offset + 1] = zone2.getProgress();
                 stateVal[offset + 2] = zone3.getProgress();
-                try {
-                    bluetoothSocket.getOutputStream().write("j".getBytes());
-                    bluetoothSocket.getOutputStream().write(data[0]);
-                    bluetoothSocket.getOutputStream().write(data[1]);
-                    bluetoothSocket.getOutputStream().write(data[2]);
-                    bluetoothSocket.getOutputStream().write(" ".getBytes());
-                } catch (Exception e){
-                    e.printStackTrace();
-                } finally {
-                    Intent intent = new Intent();
-                    setResult(RESULT_OK, intent);
-                    Intent sendDataIntent = new Intent();
-                    sendDataIntent.setAction("SEND_DATA");
-                    sendDataIntent.putExtra("data", ((mode == 1)? "n" : ((mode == 2)? "o" : "p"))
-                            + String.valueOf(stateVal[offset]) + "," + String.valueOf(stateVal[offset+1]) + "," + String.valueOf(stateVal[offset+2]) + "");
-                    finish();
-                }
+
+                Intent intent = new Intent();
+                setResult(RESULT_OK, intent);
+                Intent sendDataIntent = new Intent();
+                sendDataIntent.setAction("SEND_DATA");
+                sendDataIntent.putExtra("data", ((mode == 1)? "n" : ((mode == 2)? "o" : "p"))
+                        + String.valueOf(stateVal[offset]) + "," + String.valueOf(stateVal[offset+1]) + "," + String.valueOf(stateVal[offset+2]) + " ");
+                sendBroadcast(sendDataIntent);
+                finish();
             }
         });
         if (mode != 0){

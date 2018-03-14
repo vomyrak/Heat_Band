@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
@@ -60,8 +61,9 @@ public class MainActivity extends AppCompatActivity {
     protected ButtonRectangle brMode3;
     protected ImageView ivBtConnected;
     protected ImageView ivBtSearching;
-    protected ButtonRectangle applyChanges;
-    protected ButtonRectangle brTimer;
+    protected ImageView applyChanges;
+    protected ImageView ivTimerOn;
+    protected ImageView ivTimerOff;
     protected TextView tempUnit;
     protected DiscreteSeekBar seekBar;
     protected ImageView ivBatteryLow;
@@ -154,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         ivBtConnected = findViewById(R.id.btConnected);
         ivBtSearching = findViewById(R.id.btSearching);
         applyChanges = findViewById(R.id.change);
-        brTimer = findViewById(R.id.timer);
+        ivTimerOff = findViewById(R.id.timerOff);
         seekBar.setProgress(seekBarProgress);
         progressBar.setProgress(((int) batteryLife));
         ivBatteryLow = findViewById(R.id.batteryLow);
@@ -210,15 +212,21 @@ public class MainActivity extends AppCompatActivity {
         applyChanges.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                Toast.makeText(getApplicationContext(), "BT Name: "+DEVICE_NAME+"\nBT Address: "+DEVICE_ADDRESS, Toast.LENGTH_SHORT).show();
-                //bluetoothSocket.getOutputStream().write("j255,0,255 ".getBytes());
                 Intent sendIntent = new Intent("SEND_DATA");
-                sendIntent.putExtra("data", "j255,0,255 ");
+                sendIntent.putExtra("data", "n" + stateVal[3] + "," + stateVal[4] + "," + stateVal[5] + " ");
+                sendBroadcast(sendIntent);
+
+                        sendIntent = new Intent("SEND_DATA");
+                        sendIntent.putExtra("data", "o" + stateVal[6] + "," + stateVal[7] + "," + stateVal[8] + " ");
+                        sendBroadcast(sendIntent);
+
+                sendIntent = new Intent("SEND_DATA");
+                sendIntent.putExtra("data", "p" + stateVal[9] + "," + stateVal[10] + "," + stateVal[11] + " ");
                 sendBroadcast(sendIntent);
             }
         });
 
-        brTimer.setOnClickListener(new View.OnClickListener(){
+        ivTimerOff.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
                 if (!timerSet) {
@@ -618,22 +626,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void changeActiveMode(int newMode){
-        if (newMode == currentMode){
-            if ((!mode1Switch.isCheck()) && (!mode2Switch.isCheck()) && (!mode3Switch.isCheck())) {
-                currentMode = 0;
-                Intent sendIntent = new Intent("SEND_DATA");
-                sendIntent.putExtra("data", "t0,0,0 ");
-                sendBroadcast(sendIntent);
-                //TODO send op code to turn off heating
-            }
+        if (newMode == 0){
+            currentMode = 0;
+            Intent sendIntent = new Intent("SEND_DATA");
+            sendIntent.putExtra("data", "t0,0,0 ");
+            sendBroadcast(sendIntent);
         }
-        else{
+        else if (newMode != currentMode){
             currentMode = newMode;
-            if (myBtService != null) {
                 Intent sendIntent = new Intent("SEND_DATA");
                 sendIntent.putExtra("data", "q" + String.valueOf(newMode) + ",0,0 ");
                 sendBroadcast(sendIntent);
-            }
+
         }
     }
 }

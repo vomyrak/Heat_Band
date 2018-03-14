@@ -32,7 +32,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
-
     compile 'org.adw.library:discrete-seekbar:1.0.1'
     compile 'com.daimajia.numberprogressbar:library:1.4@aar'
     compile 'com.android.support:recyclerview-v7:26.1.0'

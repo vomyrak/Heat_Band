@@ -9,14 +9,16 @@
     android:background="@color/background"
     tools:context="com.example.vomyrak.heatband.MainActivity">
 
+
     <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/current_display"
         android:layout_width="wrap_content"
         android:layout_height="207dp"
-        android:background="@color/currentDisplay"
+        android:background="@drawable/gradient"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:context="com.example.vomyrak.heatband.MainActivity">
@@ -62,7 +64,6 @@
             android:layout_height="45dp"
             android:layout_marginEnd="48dp"
             android:layout_marginStart="32dp"
-            android:background="@color/currentDisplay"
             android:fontFamily="@font/roboto"
             android:text="@string/Celsius"
             android:textColor="@color/text_light"
@@ -72,8 +73,7 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toEndOf="@+id/current_temp"
             app:layout_constraintTop_toTopOf="@+id/current_temp"
-            app:layout_constraintVertical_bias="0.0"
-            />
+            app:layout_constraintVertical_bias="0.0" />
 
 
         <TextView
@@ -140,77 +140,30 @@
 
     </android.support.constraint.ConstraintLayout>
 
-
-    <com.gc.materialdesign.views.ButtonRectangle
-        android:id="@+id/change"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:alpha="0.75"
-        android:background="@color/button"
-        android:text="@string/applyChanges"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/timer"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <com.gc.materialdesign.views.ButtonRectangle
-        android:id="@+id/timer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:alpha="0.75"
-        android:background="@color/button"
-        android:text="@string/setTimer"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/change" />
-
-    <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
-        android:id="@+id/temp_setter"
-        android:layout_width="187dp"
-        android:layout_height="30dp"
-        android:layout_marginEnd="60dp"
-        android:layout_marginTop="20dp"
-        app:dsb_indicatorColor="@color/background"
-        app:dsb_indicatorTextAppearance="@color/text_light"
-        app:dsb_max="255"
-        app:dsb_min="0dp"
-        app:dsb_progressColor="@color/reached"
-        app:dsb_trackColor="@color/unreached"
-        app:dsb_trackHeight="0.5dp"
-        app:dsb_value="2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/temp_offset"
-        app:layout_constraintTop_toBottomOf="@+id/current_display" />
-
-
     <com.gc.materialdesign.views.Switch
         android:id="@+id/switch2"
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:layout_marginBottom="8dp"
         android:layout_marginTop="8dp"
-        android:background="@color/currentDisplay"
+        android:background="@color/reached"
         app:layout_constraintBottom_toBottomOf="@+id/mode_2"
         app:layout_constraintStart_toStartOf="@+id/switch3"
-        app:layout_constraintTop_toTopOf="@+id/mode_2" />
+        app:layout_constraintTop_toTopOf="@+id/mode_2"
+        app:layout_constraintVertical_bias="1.0" />
 
     <com.gc.materialdesign.views.Switch
         android:id="@+id/switch3"
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginEnd="96dp"
+        android:layout_marginEnd="80dp"
         android:layout_marginTop="8dp"
-        android:background="@color/currentDisplay"
+        android:background="@color/reached"
         app:layout_constraintBottom_toBottomOf="@+id/mode_3"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/mode_3" />
+        app:layout_constraintTop_toTopOf="@+id/mode_3"
+        app:layout_constraintVertical_bias="1.0" />
 
     <com.gc.materialdesign.views.Switch
         android:id="@+id/switch1"
@@ -218,47 +171,36 @@
         android:layout_height="40dp"
         android:layout_marginBottom="8dp"
         android:layout_marginTop="8dp"
-        android:background="@color/currentDisplay"
+        android:background="@color/reached"
         app:layout_constraintBottom_toBottomOf="@+id/mode_1"
         app:layout_constraintStart_toStartOf="@+id/switch2"
-        app:layout_constraintTop_toTopOf="@+id/mode_1" />
+        app:layout_constraintTop_toTopOf="@+id/mode_1"
+        app:layout_constraintVertical_bias="0.0" />
 
-
-    <TextView
-        android:id="@+id/temp_offset"
-        android:layout_width="50dp"
-        android:layout_height="30dp"
-        android:layout_marginStart="60dp"
-        android:layout_marginTop="8dp"
-        android:fontFamily="@font/roboto"
-        android:text="@string/tempOffset"
-        android:textColor="@color/text_dark"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/temp_setter"
-        app:layout_constraintEnd_toStartOf="@+id/temp_setter"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/temp_setter" />
 
     <com.gc.materialdesign.views.ButtonRectangle
         android:id="@+id/mode_1"
         android:layout_width="77dp"
         android:layout_height="55dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
         android:layout_marginBottom="4dp"
-        android:layout_marginStart="80dp"
+        android:layout_marginStart="76dp"
+        android:layout_marginTop="35dp"
         android:alpha="0.75"
         android:background="@color/button"
         android:text="@string/Mode_1"
         app:layout_constraintBottom_toTopOf="@+id/mode_2"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/current_display" />
 
     <com.gc.materialdesign.views.ButtonRectangle
         android:id="@+id/mode_2"
         android:layout_width="77dp"
         android:layout_height="55dp"
         android:layout_marginBottom="4dp"
-        android:layout_marginStart="80dp"
 
+        android:layout_marginStart="76dp"
         android:alpha="0.75"
         android:background="@color/button"
         android:text="@string/Mode_2"
@@ -269,13 +211,131 @@
         android:id="@+id/mode_3"
         android:layout_width="77dp"
         android:layout_height="55dp"
-        android:layout_marginBottom="120dp"
-        android:layout_marginStart="80dp"
+        android:layout_marginBottom="24dp"
+        android:layout_marginStart="76dp"
         android:alpha="0.75"
         android:background="@color/button"
         android:text="@string/Mode_3"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/main_setting_temp"
         app:layout_constraintStart_toStartOf="parent" />
+
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/main_setting_temp"
+        android:layout_width="0dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="64dp"
+        android:background="@drawable/custom_border_horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:context="com.example.vomyrak.heatband.MainActivity">
+
+
+        <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
+            android:id="@+id/temp_setter"
+            android:layout_width="195dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="48dp"
+            android:visibility="visible"
+
+            app:dsb_indicatorColor="@color/reached"
+            app:dsb_indicatorTextAppearance="@color/text_light"
+            app:dsb_max="255"
+            app:dsb_min="0dp"
+            app:dsb_progressColor="@color/reached"
+            app:dsb_trackColor="@color/unreached"
+            app:dsb_trackHeight="0.5dp"
+            app:dsb_value="2"
+            app:layout_constraintBottom_toBottomOf="@+id/ivOffset"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivOffset"
+            app:layout_constraintTop_toTopOf="@+id/ivOffset" />
+
+
+
+
+        <ImageView
+            android:id="@+id/ivOffset"
+            android:layout_width="29dp"
+            android:layout_height="26dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="64dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/tempOffset"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/temp_icon" />
+
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/main_setting_applyChanges"
+        android:layout_width="180dp"
+        android:layout_height="0dp"
+
+        android:background="@drawable/custom_border_vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/main_setting_timer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/main_setting_temp"
+        tools:context="com.example.vomyrak.heatband.MainActivity">
+
+
+        <ImageView
+            android:id="@+id/change"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:contentDescription="@string/applyChanges"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/save_icon" />
+
+
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/main_setting_timer"
+        android:layout_width="180dp"
+        android:layout_height="0dp"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/main_setting_temp"
+        tools:context="com.example.vomyrak.heatband.MainActivity">
+
+        <ImageView
+            android:id="@+id/timerOff"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:contentDescription="@string/TimerOff"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@mipmap/ic_av_timer_black_48dp" />
+
+
+        <ImageView
+            android:id="@+id/timerOn"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="2dp"
+            android:contentDescription="@string/TimerOn"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/timer_on" />
+
+
+    </android.support.constraint.ConstraintLayout>
+
 
 </android.support.constraint.ConstraintLayout>
 

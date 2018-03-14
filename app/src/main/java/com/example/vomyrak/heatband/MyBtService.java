@@ -194,6 +194,7 @@ public class MyBtService extends IntentService {
     public void sendBtData(byte[] data){
         try {
             btOut.write(data);
+            Log.d(TAG, data.toString());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NullPointerException f){
@@ -307,7 +308,7 @@ public class MyBtService extends IntentService {
         if (dataArray.length != 3){
             return false;
         }
-
+        Log.d(TAG, String.valueOf(opcode));
         Log.d(TAG, data);
         // TODO to implement decoding mechanism
 
