@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
+    android:background="@color/background"
+    android:theme="@style/ScanTheme"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
     <android.support.v7.widget.RecyclerView
@@ -24,7 +26,7 @@
         android:layout_below="@+id/recyclerView"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
-        android:background="@color/colorPrimary"
+        android:background="@color/reached"
         android:text="@string/refresh"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

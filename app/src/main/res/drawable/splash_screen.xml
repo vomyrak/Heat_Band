@@ -7,8 +7,9 @@
             android:drawable="@color/background"/>
 
         <item
-            android:gravity="center"
-            android:drawable="@drawable/app_logo" />
+
+            android:gravity="fill"
+            android:drawable="@drawable/logo2" />
 
     </layer-list>
 

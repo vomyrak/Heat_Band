@@ -10,8 +10,10 @@
     <string name="TimerOn">Timer On</string>
     <string name="TimerOff">Timer Off</string>
     <string name="Temperature">Temperature</string>
+    <string name="Temperature_default">--</string>
     <string name="Celsius">°C</string>
     <string name="Fahrenheit">°F</string>
+    <string name="Degree">°</string>
     <string name="tempOffset">Offset</string>
 
     <string name="Battery">Battery</string>
@@ -29,5 +31,6 @@
     <string name="channel_name">This is a channel</string>
     <string name="channel_description">This is a description</string>
     <string name="refresh">Refresh</string>
-
+    <string name="count_down_zero">0 Hour 0 Minute 0 Second</string>
+    <string name="setTimer">Set Timer</string>
 </resources>

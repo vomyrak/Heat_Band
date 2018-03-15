@@ -27,8 +27,10 @@
         app:dsb_value="2"
         app:layout_constraintBottom_toBottomOf="@+id/zone1"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.551"
         app:layout_constraintStart_toEndOf="@+id/zone1"
-        app:layout_constraintTop_toTopOf="@+id/zone1" />
+        app:layout_constraintTop_toTopOf="@+id/zone1"
+        app:layout_constraintVertical_bias="0.521" />
 
     <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
         android:id="@+id/set_zone2"
@@ -47,8 +49,10 @@
         app:dsb_value="2"
         app:layout_constraintBottom_toBottomOf="@+id/zone2"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.551"
         app:layout_constraintStart_toEndOf="@+id/zone2"
-        app:layout_constraintTop_toTopOf="@+id/zone2" />
+        app:layout_constraintTop_toTopOf="@+id/zone2"
+        app:layout_constraintVertical_bias="0.565" />
 
     <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
         android:id="@+id/set_zone3"
@@ -67,15 +71,17 @@
         app:dsb_value="2"
         app:layout_constraintBottom_toBottomOf="@+id/zone3"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.551"
         app:layout_constraintStart_toEndOf="@+id/zone3"
-        app:layout_constraintTop_toTopOf="@+id/zone3" />
+        app:layout_constraintTop_toTopOf="@+id/zone3"
+        app:layout_constraintVertical_bias="0.478" />
 
     <TextView
         android:id="@+id/zone1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="62dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="100dp"
         android:fontFamily="@font/roboto"
         android:text="@string/Zone_1"
         android:textColor="@color/text_dark"
@@ -87,13 +93,13 @@
         android:id="@+id/zone2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="64dp"
         android:fontFamily="@font/roboto"
         android:text="@string/Zone_2"
         android:textColor="@color/text_dark"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@+id/zone1"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="@+id/zone1"
         app:layout_constraintTop_toBottomOf="@+id/zone1" />
 
@@ -103,13 +109,13 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="52dp"
         android:fontFamily="@font/roboto"
         android:text="@string/Zone_3"
         android:textColor="@color/text_dark"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@+id/zone2"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="@+id/zone2"
         app:layout_constraintTop_toBottomOf="@+id/zone2" />
 
@@ -117,16 +123,15 @@
         android:id="@+id/save"
         android:layout_width="77dp"
         android:layout_height="55dp"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
+        android:layout_marginBottom="24dp"
         android:alpha="0.75"
         android:background="@color/button"
         android:text="@string/Save"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/set_zone3"
-        app:layout_constraintHorizontal_bias="0.515"
-        app:layout_constraintStart_toStartOf="@+id/zone3" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 
     <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -146,7 +151,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="24dp"
             android:layout_marginTop="8dp"
             android:fontFamily="@font/roboto"
             android:text="@string/ModeHeader"

@@ -22,7 +22,7 @@ public class FloatingActivity extends AppCompatActivity {
     protected DiscreteSeekBar zone3;
     protected ButtonRectangle save;
     protected TextView header;
-    protected byte[] data = new byte[3];
+    protected int[] data = new int[3];
     protected int mode;
 
 
@@ -43,22 +43,18 @@ public class FloatingActivity extends AppCompatActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                stateVal[offset] = (byte)zone1.getProgress();
-                stateVal[offset + 1] = (byte)zone2.getProgress();
-                stateVal[offset + 2] = (byte)zone3.getProgress();
-                try {
-                    bluetoothSocket.getOutputStream().write("j".getBytes());
-                    bluetoothSocket.getOutputStream().write(data[0]);
-                    bluetoothSocket.getOutputStream().write(data[1]);
-                    bluetoothSocket.getOutputStream().write(data[2]);
-                    bluetoothSocket.getOutputStream().write(" ".getBytes());
-                } catch (Exception e){
-                    e.printStackTrace();
-                } finally {
-                    Intent intent = new Intent();
-                    setResult(RESULT_OK, intent);
-                    finish();
-                }
+                stateVal[offset] = zone1.getProgress();
+                stateVal[offset + 1] = zone2.getProgress();
+                stateVal[offset + 2] = zone3.getProgress();
+
+                Intent intent = new Intent();
+                setResult(RESULT_OK, intent);
+                Intent sendDataIntent = new Intent();
+                sendDataIntent.setAction("SEND_DATA");
+                sendDataIntent.putExtra("data", ((mode == 1)? "n" : ((mode == 2)? "o" : "p"))
+                        + String.valueOf(stateVal[offset]) + "," + String.valueOf(stateVal[offset+1]) + "," + String.valueOf(stateVal[offset+2]) + " ");
+                sendBroadcast(sendDataIntent);
+                finish();
             }
         });
         if (mode != 0){
@@ -66,16 +62,16 @@ public class FloatingActivity extends AppCompatActivity {
             data[0] = stateVal[offset];
             data[1] = stateVal[offset + 1];
             data[2] = stateVal[offset + 2];
-            zone1.setProgress((int) data[0]);
-            zone2.setProgress((int) data[1]);
-            zone3.setProgress((int) data[2]);
+            zone1.setProgress(data[0]);
+            zone2.setProgress(data[1]);
+            zone3.setProgress(data[2]);
 
             header.setText(R.string.ModeHeader + mode);
 
             zone1.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
                 @Override
                 public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                    data[0]=(byte)value;
+                    data[0]=value;
                 }
 
                 @Override
@@ -92,7 +88,7 @@ public class FloatingActivity extends AppCompatActivity {
             zone2.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
                 @Override
                 public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                    data[1]=(byte)value;
+                    data[1]=value;
 
                 }
 
@@ -110,7 +106,7 @@ public class FloatingActivity extends AppCompatActivity {
             zone3.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
                 @Override
                 public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                    data[2]=(byte)value;
+                    data[2]=value;
 
                 }
 

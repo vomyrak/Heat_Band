@@ -4,7 +4,7 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.example.vomyrak.heatband"
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -32,11 +32,11 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
-
     compile 'org.adw.library:discrete-seekbar:1.0.1'
     compile 'com.daimajia.numberprogressbar:library:1.4@aar'
     compile 'com.android.support:recyclerview-v7:26.1.0'
     compile 'com.github.vajro:MaterialDesignLibrary:1.6'
+    compile 'com.jjoe64:graphview:4.2.1'
     implementation "com.android.support:support-compat:26.1.0"
 
 }

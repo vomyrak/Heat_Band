@@ -57,12 +57,13 @@ import static com.example.vomyrak.heatband.MainActivity.mBatteryLife;
 import static com.example.vomyrak.heatband.MainActivity.myUUID;
 import static com.example.vomyrak.heatband.MainActivity.pairedDevices;
 import static com.example.vomyrak.heatband.MainActivity.mOutgoingData;
-
+import static com.example.vomyrak.heatband.MainActivity.zoneTemperature;
 import static com.example.vomyrak.heatband.MainActivity.rRequestBt;
 import static com.example.vomyrak.heatband.MainActivity.stateVal;
 import static com.example.vomyrak.heatband.MainActivity.tempVal;
 import static com.example.vomyrak.heatband.MainActivity.currentMode;
 import static com.example.vomyrak.heatband.MainActivity.lastDeviceAddress;
+import static com.example.vomyrak.heatband.MainActivity.individualCellBattery;
 
 public class MyBtService extends IntentService {
     protected static final String TAG ="MyBtService";
@@ -76,11 +77,8 @@ public class MyBtService extends IntentService {
 
     protected static final String mConfig = "Config";
     protected static int serviceId;
-    protected Random random = new Random();
-    protected String randString;
     protected static final String CHANNEL_ID = "Heatband";
     private NotificationManager mNotificationManager;
-    protected boolean lowBatteryNotified = false;
 
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -108,10 +106,8 @@ public class MyBtService extends IntentService {
                 timerThread.run();
             }
             else if (action.equals("RESET_TIMER")){
-                if (timerThread.isAlive()){
-                    timerThread.interrupt();
-                    timerThread = null;
-                }
+                timerThread.interrupt();
+                timerThread = null;
             }
         }
     };
@@ -198,6 +194,7 @@ public class MyBtService extends IntentService {
     public void sendBtData(byte[] data){
         try {
             btOut.write(data);
+            Log.d(TAG, data.toString());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NullPointerException f){
@@ -231,6 +228,11 @@ public class MyBtService extends IntentService {
     public void onDestroy() {
         super.onDestroy();
         this.unregisterReceiver(mReceiver);
+        try {
+            bluetoothSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void resetBluetooth(){
@@ -306,58 +308,65 @@ public class MyBtService extends IntentService {
         if (dataArray.length != 3){
             return false;
         }
-
+        Log.d(TAG, String.valueOf(opcode));
         Log.d(TAG, data);
         // TODO to implement decoding mechanism
 
         switch (opcode){
             case 'a':
-                stateVal[3] = (byte)Integer.parseInt(dataArray[0]);
-                stateVal[4] = (byte)Integer.parseInt(dataArray[1]);
-                stateVal[5] = (byte)Integer.parseInt(dataArray[2]);
+                stateVal[3] = Integer.parseInt(dataArray[0]);
+                stateVal[4] = Integer.parseInt(dataArray[1]);
+                stateVal[5] = Integer.parseInt(dataArray[2]);
                 return true;
             case 'b':
-                stateVal[6] = (byte)Integer.parseInt(dataArray[0]);
-                stateVal[7] = (byte)Integer.parseInt(dataArray[1]);
-                stateVal[8] = (byte)Integer.parseInt(dataArray[2]);
+                stateVal[6] = Integer.parseInt(dataArray[0]);
+                stateVal[7] = Integer.parseInt(dataArray[1]);
+                stateVal[8] = Integer.parseInt(dataArray[2]);
                 return true;
             case 'c':
-                stateVal[9] = (byte)Integer.parseInt(dataArray[0]);
-                stateVal[10] = (byte)Integer.parseInt(dataArray[1]);
-                stateVal[11] = (byte)Integer.parseInt(dataArray[2]);
+                stateVal[9] = Integer.parseInt(dataArray[0]);
+                stateVal[10] = Integer.parseInt(dataArray[1]);
+                stateVal[11] = Integer.parseInt(dataArray[2]);
                 return true;
             case 'd':
-                currentMode = Integer.parseInt(dataArray[2]);
+                currentMode = Integer.parseInt(dataArray[0]);
                 return true;
-            case 'e':
-                // not implemented
             case 'f':
-                batteryLife = (byte)Integer.parseInt(dataArray[2]);
+                batteryLife = Integer.parseInt(dataArray[0]); // range is [0,1000]
                 return true;
-                //TODO batteryLow/Charging imageView update
             case 'g':
-                tempVal = -10 + (Integer.parseInt(dataArray[1]) * 256 + Integer.parseInt(dataArray[2])) * 70;
+                zoneTemperature[0] = Integer.parseInt(dataArray[0]) / 10 - 10;
+                zoneTemperature[1] = Integer.parseInt(dataArray[1]) / 10 - 10;
+                zoneTemperature[2] = Integer.parseInt(dataArray[2]) / 10 - 10;
+                tempVal = (zoneTemperature[0] + zoneTemperature[1] + zoneTemperature[2]) / 3;
                 return true;
             case 'h':
-                Intent stateIntent = new Intent();
-                stateIntent.setAction("NOTIFY_POWER_OFF");
-                sendBroadcast(stateIntent);
+                NotificationCompat.Builder notifySwitchOff = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
+                        .setContentTitle("Heat Band")
+                        .setContentText("Your Device is Switching off!")
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                mNotificationManager.notify(1, notifySwitchOff.build());
                 return true;
-                // TODO band switched off
             case 'i':
-                Intent onIntent = new Intent();
-                onIntent.setAction("NOTIFY_POWER_ON");
-                sendBroadcast(onIntent);
+                NotificationCompat.Builder notifySwitchOn = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
+                        .setContentTitle("Heat Band")
+                        .setContentText("Your Device is Switching on!")
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                mNotificationManager.notify(1, notifySwitchOn.build());
                 return true;
-                // TODO band switched on
             case 'j':
+                batteryLife = Integer.parseInt(dataArray[0]);
                 NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
                         .setContentTitle("Heat Band")
-                        .setContentText("Low Battery")
+                        .setContentText(String.format("Your device battery is running low. Connect to power as soon as possible!"))
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT);
                 mNotificationManager.notify(1, mBuilder.build());
                 return true;
-                // TODO low battery warning
+            case 'k':
+                individualCellBattery[0] = Integer.parseInt(dataArray[0]) / 100;
+                individualCellBattery[1] = Integer.parseInt(dataArray[1]) / 100;
+                individualCellBattery[2] = Integer.parseInt(dataArray[2]) / 100;
+                return true;
             default:
                 return false;
 
@@ -394,11 +403,11 @@ public class MyBtService extends IntentService {
                     Log.d(TAG, "run: NullPointered");
                 }
                 finally {
-                    handler.postDelayed(listeningThread, 500);
+                    handler.postDelayed(listeningThread, 1000);
                 }
             }
             else {
-                handler.postDelayed(listeningThread, 500);
+                handler.postDelayed(listeningThread, 1000);
             }
 
         }
@@ -442,7 +451,10 @@ public class MyBtService extends IntentService {
                 public void onTick(long l) {
                     Intent countdownIntent = new Intent();
                     countdownIntent.setAction("SET_TIMER_TEXT");
-                    String tempString = l / (1000*3600) + " Hours " + (l % (1000*3600)) / (1000*60) + "Minutes";
+                    long hours = l / (1000 * 3600);
+                    long minutes = (l - hours * 1000 * 3600) / (1000 * 60);
+                    long seconds = (l - hours * 1000 * 3600 - minutes * 1000 * 60) / 1000;
+                    String tempString = hours + " Hours " + minutes + " Minutes " + seconds + " Seconds";
                     countdownIntent.putExtra("data", tempString);
                     sendBroadcast(countdownIntent);
                 }
@@ -450,8 +462,7 @@ public class MyBtService extends IntentService {
                 @Override
                 public void onFinish() {
                     Intent countdownIntent = new Intent();
-                    countdownIntent.setAction("SET_TIMER_TEXT");
-                    countdownIntent.putExtra("data", "0");
+                    countdownIntent.setAction("TIME_UP");
                     sendBroadcast(countdownIntent);
                 }
             };

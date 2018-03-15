@@ -12,9 +12,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -50,6 +53,8 @@ public class ScanActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
         checkLocationPermission();
+        ActionBar bar = getSupportActionBar();
+        bar.setBackgroundDrawable(getDrawable(R.drawable.gradient));
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         mRefresh = findViewById(R.id.refresh);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
@@ -69,7 +74,7 @@ public class ScanActivity extends AppCompatActivity {
             }
         });
         mRecyclerView.setAdapter(mDeviceAdapter);
-        getApplicationContext().registerReceiver(bReciever, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        this.registerReceiver(bReciever, new IntentFilter(BluetoothDevice.ACTION_FOUND));
         mRecyclerView.setVisibility(View.VISIBLE);
         mRefresh.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -89,14 +94,16 @@ public class ScanActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        if (bluetoothAdapter.isDiscovering()){
+            bluetoothAdapter.cancelDiscovery();
+        }
         try {
             this.unregisterReceiver(bReciever);
-            if (bluetoothAdapter.isDiscovering()){
-                bluetoothAdapter.cancelDiscovery();
-            }
-            finish();
+
         } catch (IllegalArgumentException e){
             e.printStackTrace();
+        } finally {
+            finish();
         }
     }
 
@@ -139,7 +146,6 @@ public class ScanActivity extends AppCompatActivity {
                 }
 
                 else {
-                    discoveredDevices.add(device);
                     addItemForDisplay(device);
                 }
             }
