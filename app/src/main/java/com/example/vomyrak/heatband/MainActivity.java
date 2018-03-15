@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                     seekBarProgress = 4;
                     batteryLife = 100;
                     Intent startupIntent = new Intent(this, ScanActivity.class);
-                    startActivityForResult(startupIntent, 1);
+                    //startActivityForResult(startupIntent, 1);
                 }
             } catch (Exception e){
                 finish();
@@ -251,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
                     numberPicker1.setWrapSelectorWheel(true);
                     numberPicker2.setWrapSelectorWheel(true);
                     numberPicker3.setWrapSelectorWheel(true);
-                    String timerString = String.valueOf(numberPicker1.getValue()) + " hours " + String.valueOf(numberPicker2.getValue()) + " minutes";
+                    String timerString = String.valueOf(numberPicker1.getValue()) + " hours " + String.valueOf(numberPicker2.getValue()) + " minutes " + String.valueOf(numberPicker3.getValue()) + " seconds ";
                     tvTimer.setText(timerString);
                     numberPicker1.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
                         @Override
@@ -477,7 +477,7 @@ public class MainActivity extends AppCompatActivity {
             }
             else{
                 Intent intent = new Intent(this, MyBtService.class);
-                startService(intent);
+                //startService(intent);
             }
         }
         else if (requestCode == rRequestZoneSetting){
@@ -488,7 +488,7 @@ public class MainActivity extends AppCompatActivity {
         else if (requestCode == rRequestBtScan){
             if (resultCode == RESULT_OK) {
                 Intent intent = new Intent(this, MyBtService.class);
-                startService(intent);
+                //startService(intent);
             }
         }
     }
@@ -506,7 +506,7 @@ public class MainActivity extends AppCompatActivity {
             if ("START_DISCOVERY".equals(action)) {
                 bluetoothAdapter.startDiscovery();
                 Intent startupIntent = new Intent(MainActivity.this, ScanActivity.class);
-                startActivityForResult(startupIntent, 1);
+                //startActivityForResult(startupIntent, 1);
             }
             else if ("CANCEL_DISCOVERY".equals(action)){
                 bluetoothAdapter.cancelDiscovery();

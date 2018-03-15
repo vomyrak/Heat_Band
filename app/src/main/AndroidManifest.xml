@@ -42,7 +42,7 @@
 
         <activity
             android:name=".ScanActivity"
-            android:theme="@style/MyTheme"></activity>
+            android:theme="@style/ScanTheme"/>
 
 
 

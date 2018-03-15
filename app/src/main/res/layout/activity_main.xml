@@ -144,13 +144,14 @@
         android:id="@+id/switch2"
         android:layout_width="wrap_content"
         android:layout_height="40dp"
-        android:layout_marginBottom="8dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
         android:layout_marginTop="8dp"
         android:background="@color/reached"
         app:layout_constraintBottom_toBottomOf="@+id/mode_2"
         app:layout_constraintStart_toStartOf="@+id/switch3"
         app:layout_constraintTop_toTopOf="@+id/mode_2"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <com.gc.materialdesign.views.Switch
         android:id="@+id/switch3"
@@ -163,7 +164,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/mode_3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/mode_3"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <com.gc.materialdesign.views.Switch
         android:id="@+id/switch1"
@@ -184,40 +185,40 @@
         android:layout_height="55dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="4dp"
         android:layout_marginStart="76dp"
         android:layout_marginTop="35dp"
         android:alpha="0.75"
         android:background="@color/button"
         android:text="@string/Mode_1"
-        app:layout_constraintBottom_toTopOf="@+id/mode_2"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/current_display" />
+        app:layout_constraintTop_toBottomOf="@+id/current_display"
+        app:layout_constraintVertical_bias="0.354" />
 
     <com.gc.materialdesign.views.ButtonRectangle
         android:id="@+id/mode_2"
         android:layout_width="77dp"
         android:layout_height="55dp"
-        android:layout_marginBottom="4dp"
-
         android:layout_marginStart="76dp"
+        android:layout_marginTop="16dp"
         android:alpha="0.75"
         android:background="@color/button"
         android:text="@string/Mode_2"
-        app:layout_constraintBottom_toTopOf="@+id/mode_3"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mode_1" />
 
     <com.gc.materialdesign.views.ButtonRectangle
         android:id="@+id/mode_3"
         android:layout_width="77dp"
         android:layout_height="55dp"
-        android:layout_marginBottom="24dp"
         android:layout_marginStart="76dp"
+        android:layout_marginTop="16dp"
         android:alpha="0.75"
         android:background="@color/button"
         android:text="@string/Mode_3"
         app:layout_constraintBottom_toTopOf="@+id/main_setting_temp"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/mode_2"
+        app:layout_constraintVertical_bias="0.0" />
 
 
     <android.support.constraint.ConstraintLayout
@@ -254,8 +255,6 @@
             app:layout_constraintTop_toTopOf="@+id/ivOffset" />
 
 
-
-
         <ImageView
             android:id="@+id/ivOffset"
             android:layout_width="29dp"
@@ -275,8 +274,6 @@
         android:id="@+id/main_setting_applyChanges"
         android:layout_width="180dp"
         android:layout_height="0dp"
-
-
         android:background="@drawable/custom_border_vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/main_setting_timer"
@@ -287,9 +284,13 @@
 
         <ImageView
             android:id="@+id/change"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
+            android:layout_width="180dp"
+            android:layout_height="62dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
             android:contentDescription="@string/applyChanges"
+            android:focusable="true"
+            android:padding="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -311,12 +312,13 @@
 
         <ImageView
             android:id="@+id/timerOff"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:clickable="true"
-            android:focusable="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
             android:contentDescription="@string/TimerOff"
+            android:focusable="true"
+            android:padding="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -326,13 +328,14 @@
 
         <ImageView
             android:id="@+id/timerOn"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?android:attr/selectableItemBackground"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_marginEnd="2dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
             android:contentDescription="@string/TimerOn"
+            android:focusable="true"
+            android:padding="8dp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
