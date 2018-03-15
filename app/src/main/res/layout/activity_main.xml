@@ -27,6 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginBottom="38dp"
+            android:clickable="true"
             app:layout_constraintBottom_toTopOf="@id/weather"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -83,13 +84,14 @@
             <TextView
                 android:id="@+id/current_temp"
                 android:layout_width="176dp"
-                android:layout_height="44dp"
+                android:layout_height="43dp"
                 android:layout_marginStart="48dp"
                 android:layout_marginTop="100dp"
                 android:fontFamily="@font/roboto"
-                android:text="@string/Temperature"
+                android:text="@string/Temperature_default"
+                android:textAlignment="center"
                 android:textColor="@color/text_light"
-                android:textSize="30sp"
+                android:textSize="36sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -142,14 +144,50 @@
                 app:srcCompat="@mipmap/ic_battery_charging_full_white_48dp" />
         </android.support.constraint.ConstraintLayout>
 
-        <View
+        <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
             android:id="@+id/weather"
             android:layout_height="100dp"
             android:layout_marginBottom="40dp"
             app:layout_constraintBottom_toTopOf="@id/graph"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent" >
+
+            <ImageView
+                android:id="@+id/weather_icon"
+                android:layout_width="80dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="30dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:srcCompat="@drawable/rain" />
+
+            <TextView
+                android:id="@+id/weather_text"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="35dp"
+                android:text="7°/3°"
+                android:textColor="#ffffff"
+                android:textSize="30sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/weather_icon"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/weather_description"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginRight="16dp"
+                android:layout_marginStart="32dp"
+                android:text="Humidity:\n80%"
+                android:textColor="#ffffff"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintStart_toEndOf="@id/weather_text"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.512" />
+        </android.support.constraint.ConstraintLayout>
         <com.jjoe64.graphview.GraphView
             android:layout_width="match_parent"
             android:layout_height="200dp"
@@ -173,7 +211,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentStart="true"
         android:background="@color/background"
-        android:visibility="invisible">
+        android:visibility="visible">
 
         <com.gc.materialdesign.views.Switch
             android:id="@+id/switch2"

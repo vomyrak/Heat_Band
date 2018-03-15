@@ -11,12 +11,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.NumberPicker;
 import android.widget.RelativeLayout;
@@ -26,6 +30,7 @@ import com.daimajia.numberprogressbar.NumberProgressBar;
 import com.gc.materialdesign.views.Switch;
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
@@ -34,6 +39,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.UUID;
 import com.gc.materialdesign.views.ButtonRectangle;
@@ -80,7 +90,9 @@ public class MainActivity extends AppCompatActivity {
     protected AlertDialog generalAlert;
     protected AlertDialog timerAlert;
     protected GraphView graphView;
-
+    protected TextView weather;
+    protected ConstraintLayout temperatureView;
+    protected ConstraintLayout lowerLayer;
 
     //Create constant strings
     protected static final String mSettingStateVals = "stateVals";
@@ -90,7 +102,8 @@ public class MainActivity extends AppCompatActivity {
     protected static final String mOutgoingData = "OutgoingData";
     protected static String DEVICE_ADDRESS;
     protected static String DEVICE_NAME;
-
+    private static String BASE_API = "http://api.openweathermap.org/data/2.5/weather?q=London,uk";
+    private static final String API_KEY = "3893f595f8660f725fb84e9a8d9a0e5d";
 
     //Create bluetooth adaptor
     protected static BluetoothAdapter bluetoothAdapter;
@@ -174,6 +187,9 @@ public class MainActivity extends AppCompatActivity {
         mode2Switch = findViewById(R.id.switch2);
         mode3Switch = findViewById(R.id.switch3);
         graphView = findViewById(R.id.graph);
+        weather = findViewById(R.id.weather_text);
+        temperatureView = findViewById(R.id.top_half);
+        lowerLayer = findViewById(R.id.lower_layer);
         for (int i = 0; i < tempHistory.length; i++){
             DataPoint tempData = new DataPoint(i, 0);
             tempHistory[i] = tempData;
@@ -207,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         newThread.run();
-
+        loadWeatherData();
     }
     protected final class MyTextView{
         final private TextView myTextView;
@@ -281,7 +297,65 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void loadWeatherData(){
+        String currentLocation = BASE_API;
+        new FetchWeatherTask().execute(currentLocation);
+    }
 
+    public static String getResponseFromHttpUrl(URL url) throws IOException {
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        try {
+            InputStream in = urlConnection.getInputStream();
+
+            Scanner scanner = new Scanner(in);
+            scanner.useDelimiter("\\A");
+
+            boolean hasInput = scanner.hasNext();
+            if (hasInput) {
+                return scanner.next();
+            } else {
+                return null;
+            }
+        } finally {
+            urlConnection.disconnect();
+        }
+    }
+
+    public class FetchWeatherTask extends AsyncTask<String, Void, String[]>{
+        @Override
+        protected String[] doInBackground(String... strings) {
+            if (strings.length == 0){
+                return null;
+            }
+            String location = strings[0] + "&appid=3893f595f8660f725fb84e9a8d9a0e5d";
+            Uri weatherRequestUrl = Uri.parse(location).buildUpon().build();
+            URL url = null;
+            try{
+                url = new URL(weatherRequestUrl.toString());
+            } catch (MalformedURLException e){
+                e.printStackTrace();
+            }
+            try{
+                String response = getResponseFromHttpUrl(url);
+                return new String[]{response};
+            } catch (IOException e){
+                e.printStackTrace();
+            } return null;
+        }
+
+        @Override
+        protected void onPostExecute(String[] strings) {
+            if (strings != null){
+                try {
+                    JSONObject newObject = new JSONObject(strings[0]);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } finally {
+
+                }
+            }
+        }
+    }
 
     @Override
     protected void onStart() {super.onStart();}
@@ -589,6 +663,28 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        temperatureView.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                if (lowerLayer.getVisibility() != View.VISIBLE){
+                    lowerLayer.setVisibility(View.VISIBLE);
+                    TranslateAnimation animate = new TranslateAnimation(0, 0, lowerLayer.getHeight(), 0);
+                    animate.setDuration(500);
+                    animate.setFillAfter(true);
+                    lowerLayer.startAnimation(animate);
+                }
+                else{
+                    TranslateAnimation animate = new TranslateAnimation(0, 0, 0,lowerLayer.getHeight());
+                    animate.setDuration(500);
+                    animate.setFillAfter(true);
+                    lowerLayer.startAnimation(animate);
+                    lowerLayer.setVisibility(View.INVISIBLE);
+
+                }
+
+            }
+        });
     }
     @Override
     protected void onPause(){
@@ -648,6 +744,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
 
     public void writeJsonStream(DataOutputStream out) {
         try {
