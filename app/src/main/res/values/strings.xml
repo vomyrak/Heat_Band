@@ -16,6 +16,12 @@
     <string name="Degree">°</string>
     <string name="tempOffset">Offset</string>
 
+    <string name="Weather_text_default">7°/3°</string>
+    <string name="Humidity_default">Humidity: 80%</string>
+    <string name="Weather_icon">Weather Icon</string>
+    <string name="Weather_description">Weather Description</string>
+
+
     <string name="Battery">Battery</string>
     <string name="batteryCharging">Charging</string>
     <string name="batteryLow">Low Battery</string>

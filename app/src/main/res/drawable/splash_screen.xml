@@ -7,6 +7,7 @@
             android:drawable="@color/background"/>
 
         <item
+
             android:gravity="fill"
             android:drawable="@drawable/logo2" />
 
