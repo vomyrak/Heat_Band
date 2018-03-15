@@ -160,6 +160,7 @@
                 android:layout_width="80dp"
                 android:layout_height="match_parent"
                 android:layout_marginStart="30dp"
+                android:contentDescription="@string/Weather_icon"
                 app:layout_constraintStart_toStartOf="parent"
                 app:srcCompat="@drawable/rain" />
 
@@ -168,7 +169,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginStart="35dp"
-                android:text="7°/3°"
+                android:text="@string/Weather_text_default"
                 android:textColor="#ffffff"
                 android:textSize="30sp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -181,7 +182,8 @@
                 android:layout_height="match_parent"
                 android:layout_marginRight="16dp"
                 android:layout_marginStart="32dp"
-                android:text="Humidity:\n80%"
+                android:contentDescription="@string/Weather_description"
+                android:text="@string/Humidity_default"
                 android:textColor="#ffffff"
                 android:textSize="24sp"
                 app:layout_constraintBottom_toBottomOf="parent"
