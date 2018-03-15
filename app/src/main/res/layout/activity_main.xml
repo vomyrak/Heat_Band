@@ -276,6 +276,7 @@
         android:layout_width="180dp"
         android:layout_height="0dp"
 
+
         android:background="@drawable/custom_border_vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/main_setting_timer"
@@ -312,6 +313,9 @@
             android:id="@+id/timerOff"
             android:layout_width="0dp"
             android:layout_height="45dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground"
             android:contentDescription="@string/TimerOff"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -322,11 +326,14 @@
 
         <ImageView
             android:id="@+id/timerOn"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground"
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_marginEnd="2dp"
             android:contentDescription="@string/TimerOn"
-            android:visibility="invisible"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
