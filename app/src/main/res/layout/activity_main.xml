@@ -113,6 +113,9 @@
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@mipmap/ic_bluetooth_searching_white_48dp" />
 
+
+
+
         <ImageView
             android:id="@+id/batteryLow"
             android:layout_width="30dp"

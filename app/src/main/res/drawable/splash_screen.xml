@@ -8,7 +8,7 @@
 
         <item
             android:gravity="center"
-            android:drawable="@drawable/logo" />
+            android:drawable="@drawable/app_logo" />
 
     </layer-list>
 
