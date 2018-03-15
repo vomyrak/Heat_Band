@@ -343,6 +343,7 @@ public class MyBtService extends IntentService {
             case 'h':
                 NotificationCompat.Builder notifySwitchOff = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
                         .setContentTitle("Heat Band")
+                        .setSmallIcon(R.drawable.logo2_small)
                         .setContentText("Your Device is Switching off!")
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT);
                 mNotificationManager.notify(1, notifySwitchOff.build());
@@ -350,6 +351,7 @@ public class MyBtService extends IntentService {
             case 'i':
                 NotificationCompat.Builder notifySwitchOn = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
                         .setContentTitle("Heat Band")
+                        .setSmallIcon(R.drawable.logo2_small)
                         .setContentText("Your Device is Switching on!")
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT);
                 mNotificationManager.notify(1, notifySwitchOn.build());
@@ -358,6 +360,7 @@ public class MyBtService extends IntentService {
                 batteryLife = Integer.parseInt(dataArray[0]);
                 NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
                         .setContentTitle("Heat Band")
+                        .setSmallIcon(R.drawable.logo2_small)
                         .setContentText(String.format("Your device battery is running low. Connect to power as soon as possible!"))
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT);
                 mNotificationManager.notify(1, mBuilder.build());

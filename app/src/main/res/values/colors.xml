@@ -13,5 +13,5 @@
     <color name="tempWindowDark">#039BE5</color>
     <color name="background">#E1F5FE</color>
     <color name="button">#039BE5</color>
-
+    <color name="graph_transparent">#7f03e5e1</color>
 </resources>

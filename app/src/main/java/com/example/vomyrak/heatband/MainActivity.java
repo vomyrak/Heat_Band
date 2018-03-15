@@ -20,6 +20,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.NumberPicker;
@@ -43,11 +45,13 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.UUID;
 import com.gc.materialdesign.views.ButtonRectangle;
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -118,13 +122,11 @@ public class MainActivity extends AppCompatActivity {
     protected static final int rRequestZoneSetting = 2;
     protected static final int rRequestBtScan = 3;
 
-    //Service Related
-    MyBtService myBtService;
 
     //Temperature Unit
     protected static boolean dTempUnit = true;
     protected static boolean timerSet = false;
-
+    protected final Random random = new Random();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //Initialise app variables and UI elements on creation of application
@@ -134,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
         newFilter.addAction("CANCEL_DISCOVERY");
         newFilter.addAction("TIME_UP");
         newFilter.addAction("GRAPH_UPDATE");
+        newFilter.addAction("UPDATE_BT_STATUS");
         this.registerReceiver(mReceiver, newFilter);
         if (savedInstanceState != null){
             //If saved instance is present, get value from previously set instance state
@@ -187,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
         mode2Switch = findViewById(R.id.switch2);
         mode3Switch = findViewById(R.id.switch3);
         graphView = findViewById(R.id.graph);
-        weather = findViewById(R.id.weather_text);
+        weather = findViewById(R.id.weather_max);
         temperatureView = findViewById(R.id.top_half);
         lowerLayer = findViewById(R.id.lower_layer);
         for (int i = 0; i < tempHistory.length; i++){
@@ -199,27 +202,37 @@ public class MainActivity extends AppCompatActivity {
         graphView.getViewport().setXAxisBoundsManual(true);
         graphView.getViewport().setMinX(0);
         graphView.getViewport().setMaxX(30);
-
+        graphView.getViewport().setYAxisBoundsManual(true);
+        graphView.getViewport().setMinY(0);
+        graphView.getViewport().setMaxY(10);
         graphView.getGridLabelRenderer().setHorizontalLabelsColor(Color.WHITE);
         graphView.getGridLabelRenderer().setVerticalLabelsColor(Color.WHITE);
+        graphView.getGridLabelRenderer().setVerticalAxisTitle("Temperature/°C");
+        graphView.getGridLabelRenderer().setVerticalAxisTitleColor(Color.WHITE);
+        graphView.getGridLabelRenderer().setVerticalAxisTitleTextSize(35);
+        graphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
         graphView.getGridLabelRenderer().setGridColor(Color.WHITE);
+        graphView.getGridLabelRenderer().setHorizontalLabelsVisible(false);
         graphView.addSeries(series);
         series.setThickness(8);
         series.setColor(Color.WHITE);
         series.setDrawDataPoints(false);
+        series.setDrawBackground(true);
+        series.setBackgroundColor(getResources().getColor(R.color.graph_transparent));
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(10);
         paint.setColor(Color.WHITE);
         series.setCustomPaint(paint);
         final Handler b = new Handler();
+
         Thread newThread = new Thread(new Runnable() {
 
             @Override
             public void run() {
                 Intent a = new Intent("GRAPH_UPDATE");
                 sendBroadcast(a);
-                b.postDelayed(this, 1000);
+                b.postDelayed(this, 100);
             }
         });
         newThread.run();
@@ -348,6 +361,8 @@ public class MainActivity extends AppCompatActivity {
             if (strings != null){
                 try {
                     JSONObject newObject = new JSONObject(strings[0]);
+                    String weather = newObject.getString("weather");
+                    Log.d("weather", "onPostExecute: " + weather);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 } finally {
@@ -378,10 +393,22 @@ public class MainActivity extends AppCompatActivity {
             }
 
             else if ("GRAPH_UPDATE".equals(action)){
-                series.appendData(new DataPoint(++axisCount, 5), false, 100);
+                series.appendData(new DataPoint(++axisCount, random.nextInt(10)), false, 100);
                 graphView.getViewport().getMinX(false);
                 graphView.getViewport().setMinX(graphView.getViewport().getMinX(false) + 1);
                 graphView.getViewport().setMaxX(graphView.getViewport().getMaxX(false) + 1);
+            }
+
+            else if ("UPDATE_BT_STATUS".equals(action)){
+                boolean isConnected = intent.getBooleanExtra("Connected?", false);
+                if(isConnected){
+                    ivBtConnected.setVisibility(View.VISIBLE);
+                    ivBtSearching.setVisibility(View.INVISIBLE);
+                }
+                else{
+                    ivBtConnected.setVisibility(View.INVISIBLE);
+                    ivBtSearching.setVisibility(View.VISIBLE);
+                }
             }
 
         }
@@ -669,17 +696,36 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (lowerLayer.getVisibility() != View.VISIBLE){
                     lowerLayer.setVisibility(View.VISIBLE);
+                    setViewGroupClickable(lowerLayer, true);
                     TranslateAnimation animate = new TranslateAnimation(0, 0, lowerLayer.getHeight(), 0);
                     animate.setDuration(500);
                     animate.setFillAfter(true);
                     lowerLayer.startAnimation(animate);
+
                 }
                 else{
                     TranslateAnimation animate = new TranslateAnimation(0, 0, 0,lowerLayer.getHeight());
                     animate.setDuration(500);
                     animate.setFillAfter(true);
+                    animate.setAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            setViewGroupClickable(lowerLayer, false);
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+
+                        }
+                    });
                     lowerLayer.startAnimation(animate);
                     lowerLayer.setVisibility(View.INVISIBLE);
+
 
                 }
 
@@ -689,6 +735,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause(){
         super.onPause();
+    }
+
+    protected void setViewGroupClickable(View view, boolean clickable){
+        view.setEnabled(clickable);
+        if (view instanceof ViewGroup){
+            ViewGroup viewGroup = (ViewGroup) view;
+            int childCount = viewGroup.getChildCount();
+            for (int i = 0; i < childCount; i++){
+                setViewGroupClickable(viewGroup.getChildAt(i), clickable);
+            }
+        }
     }
 
     @Override
