@@ -9,18 +9,18 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatTextView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.NumberPicker;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.daimajia.numberprogressbar.NumberProgressBar;
 import com.gc.materialdesign.views.Switch;
@@ -37,6 +37,9 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 import com.gc.materialdesign.views.ButtonRectangle;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -51,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
     protected static int currentMode;
     protected static int[] zoneTemperature = new int[3];
     protected static int[] individualCellBattery = new int[3];
+    protected static DataPoint[] tempHistory  = new DataPoint[30];
+    protected LineGraphSeries<DataPoint> series;
+    protected static int axisCount = -1;
     //Create shared preference
     //Create UI elements
     protected NumberProgressBar progressBar;
@@ -73,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
     protected Switch mode3Switch;
     protected AlertDialog generalAlert;
     protected AlertDialog timerAlert;
+    protected GraphView graphView;
 
 
     //Create constant strings
@@ -113,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
         newFilter.addAction("START_DISCOVERY");
         newFilter.addAction("CANCEL_DISCOVERY");
         newFilter.addAction("TIME_UP");
+        newFilter.addAction("GRAPH_UPDATE");
         this.registerReceiver(mReceiver, newFilter);
         if (savedInstanceState != null){
             //If saved instance is present, get value from previously set instance state
@@ -165,261 +173,41 @@ public class MainActivity extends AppCompatActivity {
         mode1Switch = findViewById(R.id.switch1);
         mode2Switch = findViewById(R.id.switch2);
         mode3Switch = findViewById(R.id.switch3);
+        graphView = findViewById(R.id.graph);
+        for (int i = 0; i < tempHistory.length; i++){
+            DataPoint tempData = new DataPoint(i, 0);
+            tempHistory[i] = tempData;
+            axisCount++;
+        }
+        series = new LineGraphSeries<>(tempHistory);
+        graphView.getViewport().setXAxisBoundsManual(true);
+        graphView.getViewport().setMinX(0);
+        graphView.getViewport().setMaxX(30);
 
-        brMode1.setOnClickListener(new View.OnClickListener() {
+        graphView.getGridLabelRenderer().setHorizontalLabelsColor(Color.WHITE);
+        graphView.getGridLabelRenderer().setVerticalLabelsColor(Color.WHITE);
+        graphView.getGridLabelRenderer().setGridColor(Color.WHITE);
+        graphView.addSeries(series);
+        series.setThickness(8);
+        series.setColor(Color.WHITE);
+        series.setDrawDataPoints(false);
+        Paint paint = new Paint();
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(10);
+        paint.setColor(Color.WHITE);
+        series.setCustomPaint(paint);
+        final Handler b = new Handler();
+        Thread newThread = new Thread(new Runnable() {
+
             @Override
-            public void onClick(View view) {
-                //OnClick of the button the floating activity is started
-                Intent startFloatingActivity = new Intent(MainActivity.this,  FloatingActivity.class);
-                startFloatingActivity.putExtra("Mode", 1);
-                MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
+            public void run() {
+                Intent a = new Intent("GRAPH_UPDATE");
+                sendBroadcast(a);
+                b.postDelayed(this, 1000);
             }
         });
+        newThread.run();
 
-        brMode2.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                Intent startFloatingActivity = new Intent(MainActivity.this,  FloatingActivity.class);
-                startFloatingActivity.putExtra("Mode", 2);
-                MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
-            }
-
-        });
-
-        brMode3.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                Intent startFloatingActivity = new Intent(MainActivity.this,  FloatingActivity.class);
-                startFloatingActivity.putExtra("Mode", 3);
-                MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
-            }
-        });
-
-        tempUnit.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                if(dTempUnit == true){
-                    dTempUnit = false;
-                    tempUnit.setText(R.string.Fahrenheit);
-                }
-                else{
-                    dTempUnit = true;
-                    tempUnit.setText(R.string.Celsius);
-                }
-
-            }
-        });
-
-        applyChanges.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                Intent sendIntent = new Intent("SEND_DATA");
-                sendIntent.putExtra("data", "n" + stateVal[3] + "," + stateVal[4] + "," + stateVal[5] + " ");
-                sendBroadcast(sendIntent);
-
-                        sendIntent = new Intent("SEND_DATA");
-                        sendIntent.putExtra("data", "o" + stateVal[6] + "," + stateVal[7] + "," + stateVal[8] + " ");
-                        sendBroadcast(sendIntent);
-
-                sendIntent = new Intent("SEND_DATA");
-                sendIntent.putExtra("data", "p" + stateVal[9] + "," + stateVal[10] + "," + stateVal[11] + " ");
-                sendBroadcast(sendIntent);
-            }
-        });
-
-
-
-        ivTimerOff.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                if (!timerSet) {
-                    final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
-                    LayoutInflater inflater = getLayoutInflater();
-                    View dialogView = inflater.inflate(R.layout.number_picker, (ConstraintLayout) findViewById(R.id.coordinatorLayout), false);
-                    aBuilder.setTitle("Select time");
-                    aBuilder.setView(dialogView);
-                    final NumberPicker numberPicker1 = dialogView.findViewById(R.id.number_picker);
-                    final NumberPicker numberPicker2 = dialogView.findViewById(R.id.number_picker2);
-                    final NumberPicker numberPicker3 = dialogView.findViewById(R.id.number_picker3);
-                    final TextView tvTimer = dialogView.findViewById(R.id.timer_display);
-                    numberPicker1.setMaxValue(11);
-                    numberPicker2.setMaxValue(59);
-                    numberPicker3.setMaxValue(59);
-                    numberPicker1.setMinValue(0);
-                    numberPicker2.setMinValue(0);
-                    numberPicker3.setMinValue(0);
-                    numberPicker1.setWrapSelectorWheel(true);
-                    numberPicker2.setWrapSelectorWheel(true);
-                    numberPicker3.setWrapSelectorWheel(true);
-                    String timerString = String.valueOf(numberPicker1.getValue()) + " hours " + String.valueOf(numberPicker2.getValue()) + " minutes " + String.valueOf(numberPicker3.getValue()) + " seconds ";
-                    tvTimer.setText(timerString);
-                    numberPicker1.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-                        @Override
-                        public void onValueChange(NumberPicker numberPicker, int i, int i1) {
-                            String timerString = String.valueOf(i1) + " hours " + String.valueOf(numberPicker2.getValue()) + " minutes " + String.valueOf(numberPicker3.getValue()) + " seconds";
-                            tvTimer.setText(timerString);
-                        }
-                    });
-                    numberPicker2.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-                        @Override
-                        public void onValueChange(NumberPicker numberPicker, int i, int i1) {
-                            String timerString = String.valueOf(numberPicker1.getValue()) + " hours " + String.valueOf(i1) + " minutes " + String.valueOf(numberPicker3.getValue()) + " seconds";
-                            tvTimer.setText(timerString);
-                        }
-                    });
-                    numberPicker3.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-                        @Override
-                        public void onValueChange(NumberPicker numberPicker, int i, int i1) {
-                            String timerString = String.valueOf(numberPicker1.getValue()) + " hours " + String.valueOf(numberPicker2.getValue()) + " minutes " + String.valueOf(i1) + " seconds";
-                            tvTimer.setText(timerString);
-                        }
-                    });
-                    aBuilder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Log.d("positive", "onClick: ");
-                            Intent setTimerIntent = new Intent();
-                            setTimerIntent.setAction("START_TIMER");
-                            long temp = (numberPicker1.getValue() * 3600 + numberPicker2.getValue() * 60 + numberPicker3.getValue()) * 1000;
-                            setTimerIntent.putExtra("millisToFuture", temp);
-                            temp = 1000;
-                            setTimerIntent.putExtra("interval", temp);
-                            sendBroadcast(setTimerIntent);
-                            Intent sendIntent = new Intent("SEND_DATA");
-                            sendIntent.putExtra("data", "u" + String.valueOf(numberPicker1.getValue())
-                                    + "," + String.valueOf(numberPicker2.getValue()) + ",0, ");
-                            sendBroadcast(sendIntent);
-                            timerSet = true;
-                            ivTimerOff.setVisibility(View.GONE);
-                            ivTimerOn.setVisibility(View.VISIBLE);
-
-
-                        }
-                    });
-                    aBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Log.d("Negative", "Onclick: ");
-
-                        }
-                    });
-                    timerAlert = aBuilder.create();
-                    timerAlert.show();
-
-                }
-                else{
-                    final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
-                    LayoutInflater inflater = getLayoutInflater();
-                    View dialogView = inflater.inflate(R.layout.timer_set, (ConstraintLayout) findViewById(R.id.coordinatorLayout), false);
-                    final MyTextView tvDownCounter = new MyTextView((TextView)dialogView.findViewById(R.id.count_down));
-                    aBuilder.setTitle("Time Till Heater Turns off:");
-                    aBuilder.setView(dialogView);
-                    aBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialogInterface) {
-                            tvDownCounter.unregisterReceiver();
-                        }
-                    });
-                    aBuilder.setNeutralButton("Reset", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Log.d("Reset Timer", "onClick: ");
-                            Intent setTimerIntent = new Intent();
-                            setTimerIntent.setAction("RESET_TIMER");
-                            sendBroadcast(setTimerIntent);
-                            tvDownCounter.unregisterReceiver();
-                            timerSet = false;
-                        }
-                    });
-                    timerAlert = aBuilder.create();
-                    timerAlert.show();
-                }
-
-            }
-        });
-
-
-        ivTimerOn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
-                LayoutInflater inflater = getLayoutInflater();
-                View dialogView = inflater.inflate(R.layout.timer_set, (ConstraintLayout) findViewById(R.id.coordinatorLayout), false);
-                aBuilder.setTitle("Time Till Heater Turns off:");
-                aBuilder.setView(dialogView);
-                aBuilder.setNeutralButton("Reset", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Log.d("Reset Timer", "onClick: ");
-                        Intent setTimerIntent = new Intent();
-                        setTimerIntent.setAction("RESET_TIMER");
-                        sendBroadcast(setTimerIntent);
-                        timerSet = false;
-                        ivTimerOn.setVisibility(View.GONE);
-                        ivTimerOff.setVisibility(View.VISIBLE);
-
-                    }
-                });
-                timerAlert = aBuilder.create();
-                timerAlert.show();
-            }
-        });
-
-        seekBar.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
-            @Override
-            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                seekBarProgress = seekBar.getProgress();
-            }
-
-            @Override
-            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
-            }
-        });
-
-        mode1Switch.setOncheckListener(new Switch.OnCheckListener() {
-            @Override
-            public void onCheck(Switch aSwitch, boolean isChecked) {
-                if (isChecked){
-                    changeActiveMode(1);
-                    mode2Switch.setChecked(false);
-                    mode3Switch.setChecked(false);
-                }
-                else{
-                    changeActiveMode(0);
-                }
-            }
-        });
-
-        mode2Switch.setOncheckListener(new Switch.OnCheckListener() {
-            @Override
-            public void onCheck(Switch aSwitch, boolean isChecked) {
-                if (isChecked){
-                    changeActiveMode(2);
-                    mode1Switch.setChecked(false);
-                    mode3Switch.setChecked(false);
-                }
-                else{
-                    changeActiveMode(0);
-                }
-            }
-        });
-        mode3Switch.setOncheckListener(new Switch.OnCheckListener() {
-            @Override
-            public void onCheck(Switch aSwitch, boolean isChecked) {
-                if (isChecked){
-                    changeActiveMode(3);
-                    mode2Switch.setChecked(false);
-                    mode1Switch.setChecked(false);
-                }
-                else{
-                    changeActiveMode(0);
-                }
-            }
-        });
     }
     protected final class MyTextView{
         final private TextView myTextView;
@@ -515,6 +303,13 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
+            else if ("GRAPH_UPDATE".equals(action)){
+                series.appendData(new DataPoint(++axisCount, 5), false, 100);
+                graphView.getViewport().getMinX(false);
+                graphView.getViewport().setMinX(graphView.getViewport().getMinX(false) + 1);
+                graphView.getViewport().setMaxX(graphView.getViewport().getMaxX(false) + 1);
+            }
+
         }
     };
 
@@ -522,6 +317,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume(){
         super.onResume();
         loadFile();
+        bindListeners();
         Intent UpdateProgress = getIntent();
         int mode = UpdateProgress.getIntExtra("Mode", 0);
         byte NewData[] = UpdateProgress.getByteArrayExtra("New Progress");
@@ -538,7 +334,262 @@ public class MainActivity extends AppCompatActivity {
         requestIntent.setAction("SEND_DATA");
         requestIntent.putExtra("data", "m0,0,0 ");
     }
+    private void bindListeners(){
+        brMode1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //OnClick of the button the floating activity is started
+                Intent startFloatingActivity = new Intent(MainActivity.this,  FloatingActivity.class);
+                startFloatingActivity.putExtra("Mode", 1);
+                MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
+            }
+        });
 
+        brMode2.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                Intent startFloatingActivity = new Intent(MainActivity.this,  FloatingActivity.class);
+                startFloatingActivity.putExtra("Mode", 2);
+                MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
+            }
+
+        });
+
+        brMode3.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                Intent startFloatingActivity = new Intent(MainActivity.this,  FloatingActivity.class);
+                startFloatingActivity.putExtra("Mode", 3);
+                MainActivity.this.startActivityForResult(startFloatingActivity, rRequestZoneSetting);
+            }
+        });
+
+        tempUnit.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                if(dTempUnit == true){
+                    dTempUnit = false;
+                    tempUnit.setText(R.string.Fahrenheit);
+                }
+                else{
+                    dTempUnit = true;
+                    tempUnit.setText(R.string.Celsius);
+                }
+
+            }
+        });
+
+        applyChanges.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                Intent sendIntent = new Intent("SEND_DATA");
+                sendIntent.putExtra("data", "n" + stateVal[3] + "," + stateVal[4] + "," + stateVal[5] + " ");
+                sendBroadcast(sendIntent);
+
+                sendIntent = new Intent("SEND_DATA");
+                sendIntent.putExtra("data", "o" + stateVal[6] + "," + stateVal[7] + "," + stateVal[8] + " ");
+                sendBroadcast(sendIntent);
+
+                sendIntent = new Intent("SEND_DATA");
+                sendIntent.putExtra("data", "p" + stateVal[9] + "," + stateVal[10] + "," + stateVal[11] + " ");
+                sendBroadcast(sendIntent);
+            }
+        });
+
+
+
+        ivTimerOff.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                if (!timerSet) {
+                    final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
+                    LayoutInflater inflater = getLayoutInflater();
+                    View dialogView = inflater.inflate(R.layout.number_picker, (RelativeLayout) findViewById(R.id.coordinatorLayout), false);
+                    aBuilder.setTitle("Select time");
+                    aBuilder.setView(dialogView);
+                    final NumberPicker numberPicker1 = dialogView.findViewById(R.id.number_picker);
+                    final NumberPicker numberPicker2 = dialogView.findViewById(R.id.number_picker2);
+                    final NumberPicker numberPicker3 = dialogView.findViewById(R.id.number_picker3);
+                    final TextView tvTimer = dialogView.findViewById(R.id.timer_display);
+                    numberPicker1.setMaxValue(11);
+                    numberPicker2.setMaxValue(59);
+                    numberPicker3.setMaxValue(59);
+                    numberPicker1.setMinValue(0);
+                    numberPicker2.setMinValue(0);
+                    numberPicker3.setMinValue(0);
+                    numberPicker1.setWrapSelectorWheel(true);
+                    numberPicker2.setWrapSelectorWheel(true);
+                    numberPicker3.setWrapSelectorWheel(true);
+                    String timerString = String.valueOf(numberPicker1.getValue()) + " hours " + String.valueOf(numberPicker2.getValue()) + " minutes " + String.valueOf(numberPicker3.getValue()) + " seconds ";
+                    tvTimer.setText(timerString);
+                    numberPicker1.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+                        @Override
+                        public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                            String timerString = String.valueOf(i1) + " hours " + String.valueOf(numberPicker2.getValue()) + " minutes " + String.valueOf(numberPicker3.getValue()) + " seconds";
+                            tvTimer.setText(timerString);
+                        }
+                    });
+                    numberPicker2.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+                        @Override
+                        public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                            String timerString = String.valueOf(numberPicker1.getValue()) + " hours " + String.valueOf(i1) + " minutes " + String.valueOf(numberPicker3.getValue()) + " seconds";
+                            tvTimer.setText(timerString);
+                        }
+                    });
+                    numberPicker3.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+                        @Override
+                        public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                            String timerString = String.valueOf(numberPicker1.getValue()) + " hours " + String.valueOf(numberPicker2.getValue()) + " minutes " + String.valueOf(i1) + " seconds";
+                            tvTimer.setText(timerString);
+                        }
+                    });
+                    aBuilder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Log.d("positive", "onClick: ");
+                            Intent setTimerIntent = new Intent();
+                            setTimerIntent.setAction("START_TIMER");
+                            long temp = (numberPicker1.getValue() * 3600 + numberPicker2.getValue() * 60 + numberPicker3.getValue()) * 1000;
+                            setTimerIntent.putExtra("millisToFuture", temp);
+                            temp = 1000;
+                            setTimerIntent.putExtra("interval", temp);
+                            sendBroadcast(setTimerIntent);
+                            Intent sendIntent = new Intent("SEND_DATA");
+                            sendIntent.putExtra("data", "u" + String.valueOf(numberPicker1.getValue())
+                                    + "," + String.valueOf(numberPicker2.getValue()) + ",0, ");
+                            sendBroadcast(sendIntent);
+                            timerSet = true;
+                            ivTimerOff.setVisibility(View.GONE);
+                            ivTimerOn.setVisibility(View.VISIBLE);
+
+
+                        }
+                    });
+                    aBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Log.d("Negative", "Onclick: ");
+
+                        }
+                    });
+                    timerAlert = aBuilder.create();
+                    timerAlert.show();
+
+                }
+                else{
+                    final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
+                    LayoutInflater inflater = getLayoutInflater();
+                    View dialogView = inflater.inflate(R.layout.timer_set, (RelativeLayout) findViewById(R.id.coordinatorLayout), false);
+                    final MyTextView tvDownCounter = new MyTextView((TextView)dialogView.findViewById(R.id.count_down));
+                    aBuilder.setTitle("Time Till Heater Turns off:");
+                    aBuilder.setView(dialogView);
+                    aBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            tvDownCounter.unregisterReceiver();
+                        }
+                    });
+                    aBuilder.setNeutralButton("Reset", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Log.d("Reset Timer", "onClick: ");
+                            Intent setTimerIntent = new Intent();
+                            setTimerIntent.setAction("RESET_TIMER");
+                            sendBroadcast(setTimerIntent);
+                            tvDownCounter.unregisterReceiver();
+                            timerSet = false;
+                        }
+                    });
+                    timerAlert = aBuilder.create();
+                    timerAlert.show();
+                }
+
+            }
+        });
+
+
+        ivTimerOn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
+                LayoutInflater inflater = getLayoutInflater();
+                View dialogView = inflater.inflate(R.layout.timer_set, (RelativeLayout) findViewById(R.id.coordinatorLayout), false);
+                aBuilder.setTitle("Time Till Heater Turns off:");
+                aBuilder.setView(dialogView);
+                aBuilder.setNeutralButton("Reset", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Log.d("Reset Timer", "onClick: ");
+                        Intent setTimerIntent = new Intent();
+                        setTimerIntent.setAction("RESET_TIMER");
+                        sendBroadcast(setTimerIntent);
+                        timerSet = false;
+                        ivTimerOn.setVisibility(View.GONE);
+                        ivTimerOff.setVisibility(View.VISIBLE);
+
+                    }
+                });
+                timerAlert = aBuilder.create();
+                timerAlert.show();
+            }
+        });
+
+        seekBar.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
+            @Override
+            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
+                seekBarProgress = seekBar.getProgress();
+            }
+
+            @Override
+            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
+            }
+        });
+
+        mode1Switch.setOncheckListener(new Switch.OnCheckListener() {
+            @Override
+            public void onCheck(Switch aSwitch, boolean isChecked) {
+                if (isChecked){
+                    changeActiveMode(1);
+                    mode2Switch.setChecked(false);
+                    mode3Switch.setChecked(false);
+                }
+                else{
+                    changeActiveMode(0);
+                }
+            }
+        });
+
+        mode2Switch.setOncheckListener(new Switch.OnCheckListener() {
+            @Override
+            public void onCheck(Switch aSwitch, boolean isChecked) {
+                if (isChecked){
+                    changeActiveMode(2);
+                    mode1Switch.setChecked(false);
+                    mode3Switch.setChecked(false);
+                }
+                else{
+                    changeActiveMode(0);
+                }
+            }
+        });
+        mode3Switch.setOncheckListener(new Switch.OnCheckListener() {
+            @Override
+            public void onCheck(Switch aSwitch, boolean isChecked) {
+                if (isChecked){
+                    changeActiveMode(3);
+                    mode2Switch.setChecked(false);
+                    mode1Switch.setChecked(false);
+                }
+                else{
+                    changeActiveMode(0);
+                }
+            }
+        });
+    }
     @Override
     protected void onPause(){
         super.onPause();
