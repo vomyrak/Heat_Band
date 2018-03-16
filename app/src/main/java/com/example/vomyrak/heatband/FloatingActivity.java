@@ -13,6 +13,7 @@ import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 
 import static com.example.vomyrak.heatband.MainActivity.bluetoothSocket;
 import static com.example.vomyrak.heatband.MainActivity.stateVal;
+import static com.example.vomyrak.heatband.MainActivity.seekBarProgress;
 
 public class FloatingActivity extends AppCompatActivity {
     
@@ -25,6 +26,17 @@ public class FloatingActivity extends AppCompatActivity {
     protected int[] data = new int[3];
     protected int mode;
 
+    int setBoundary(int num) {
+        if (num > 255) {
+            return 255;
+        } else if (num < 0) {
+            return 0;
+        }
+        return num;
+    }
+    int applyOffset(int num){
+        return setBoundary(num * 51 + seekBarProgress * 10);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +52,10 @@ public class FloatingActivity extends AppCompatActivity {
         Intent newIntent = getIntent();
         mode = newIntent.getIntExtra("Mode", 0);
         final int offset = mode * 3;
+
+
+
+
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -52,7 +68,7 @@ public class FloatingActivity extends AppCompatActivity {
                 Intent sendDataIntent = new Intent();
                 sendDataIntent.setAction("SEND_DATA");
                 sendDataIntent.putExtra("data", ((mode == 1)? "n" : ((mode == 2)? "o" : "p"))
-                        + String.valueOf(stateVal[offset]) + "," + String.valueOf(stateVal[offset+1]) + "," + String.valueOf(stateVal[offset+2]) + " ");
+                        + String.valueOf(applyOffset(stateVal[offset])) + "," + String.valueOf(applyOffset(stateVal[offset+1])) + "," + String.valueOf(applyOffset(stateVal[offset+2])) + " ");
                 sendBroadcast(sendDataIntent);
                 finish();
             }

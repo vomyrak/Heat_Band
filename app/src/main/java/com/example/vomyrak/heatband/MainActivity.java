@@ -9,8 +9,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -19,6 +22,7 @@ import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -27,8 +31,10 @@ import android.widget.ImageView;
 import android.widget.NumberPicker;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.daimajia.numberprogressbar.NumberProgressBar;
+import com.daimajia.numberprogressbar.OnProgressBarListener;
 import com.gc.materialdesign.views.Switch;
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 import org.json.JSONArray;
@@ -45,6 +51,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
@@ -61,16 +68,17 @@ public class MainActivity extends AppCompatActivity {
     //Create (3 preferences + 1 temp) * 3 bytes array for storing temperature info data
     protected static int[] stateVal = new int[12];
     //Create a byte for battery info
-    protected static int batteryLife = 255;
+    protected static int batteryLife = 100;
     //Create an integer for seekbar progress;
-    protected static int seekBarProgress = 50;
+    protected static int seekBarProgress = 0;
     protected static float tempVal;
     protected static int currentMode;
     protected static int[] zoneTemperature = new int[3];
     protected static int[] individualCellBattery = new int[3];
-    protected static DataPoint[] tempHistory  = new DataPoint[30];
+    protected static DataPoint[] tempHistory  = new DataPoint[1000];
     protected LineGraphSeries<DataPoint> series;
     protected static int axisCount = -1;
+    protected static int dataPointOffset = 0;
     //Create shared preference
     //Create UI elements
     protected NumberProgressBar progressBar;
@@ -94,9 +102,14 @@ public class MainActivity extends AppCompatActivity {
     protected AlertDialog generalAlert;
     protected AlertDialog timerAlert;
     protected GraphView graphView;
-    protected TextView weather;
+    protected TextView weatherMax;
+    protected TextView weatherMin;
+    protected TextView humidityView;
     protected ConstraintLayout temperatureView;
     protected ConstraintLayout lowerLayer;
+    protected ImageView weatherIcon;
+    protected TextView windView;
+
 
     //Create constant strings
     protected static final String mSettingStateVals = "stateVals";
@@ -104,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
     protected static final String mSeekBarProgress = "seekbarProgress";
     protected static final String mJsonFile = "Settings.json";
     protected static final String mOutgoingData = "OutgoingData";
+    protected static boolean lowBatRegion = false;
     protected static String DEVICE_ADDRESS;
     protected static String DEVICE_NAME;
     private static String BASE_API = "http://api.openweathermap.org/data/2.5/weather?q=London,uk";
@@ -127,16 +141,34 @@ public class MainActivity extends AppCompatActivity {
     protected static boolean dTempUnit = true;
     protected static boolean timerSet = false;
     protected final Random random = new Random();
+
+    //Temperature
+    protected static String actualWeather;
+    protected static int humidity;
+    protected static float wind;
+    protected static int tempMin;
+    protected static int tempMax;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //Initialise app variables and UI elements on creation of application
         super.onCreate(savedInstanceState);
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            if (!bluetoothAdapter.isEnabled()){
+                Intent enableBT = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBT, 9);
+            }
         IntentFilter newFilter = new IntentFilter();
         newFilter.addAction("START_DISCOVERY");
         newFilter.addAction("CANCEL_DISCOVERY");
         newFilter.addAction("TIME_UP");
         newFilter.addAction("GRAPH_UPDATE");
         newFilter.addAction("UPDATE_BT_STATUS");
+        newFilter.addAction("ENABLE_BT");
+        newFilter.addAction("UPDATE_GRAPH");
+        newFilter.addAction("UPDATE_TEMPERATURE");
         this.registerReceiver(mReceiver, newFilter);
         if (savedInstanceState != null){
             //If saved instance is present, get value from previously set instance state
@@ -158,10 +190,11 @@ public class MainActivity extends AppCompatActivity {
                     for (int i = 0; i < stateVal.length; i++){
                         stateVal[i] = 0;
                     }
-                    seekBarProgress = 4;
-                    batteryLife = 100;
+                    seekBarProgress = 10;
+                    batteryLife = 78;
+
                     Intent startupIntent = new Intent(this, ScanActivity.class);
-                    //startActivityForResult(startupIntent, 1);
+                    startActivityForResult(startupIntent, 1);
                 }
             } catch (Exception e){
                 finish();
@@ -186,13 +219,18 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setProgress(((int) batteryLife));
         ivBatteryLow = findViewById(R.id.batteryLow);
         ivBatteryCharging = findViewById(R.id.batteryCharging);
+        ivBatteryLow.setVisibility(View.INVISIBLE);
         mode1Switch = findViewById(R.id.switch1);
         mode2Switch = findViewById(R.id.switch2);
         mode3Switch = findViewById(R.id.switch3);
         graphView = findViewById(R.id.graph);
-        weather = findViewById(R.id.weather_max);
+        weatherMax = findViewById(R.id.weather_max);
+        weatherMin = findViewById(R.id.weather_min);
         temperatureView = findViewById(R.id.top_half);
+        humidityView = findViewById(R.id.weather_humidity);
         lowerLayer = findViewById(R.id.lower_layer);
+        weatherIcon = findViewById(R.id.weather_icon);
+        windView = findViewById(R.id.weather_wind);
         for (int i = 0; i < tempHistory.length; i++){
             DataPoint tempData = new DataPoint(i, 0);
             tempHistory[i] = tempData;
@@ -203,8 +241,8 @@ public class MainActivity extends AppCompatActivity {
         graphView.getViewport().setMinX(0);
         graphView.getViewport().setMaxX(30);
         graphView.getViewport().setYAxisBoundsManual(true);
-        graphView.getViewport().setMinY(0);
-        graphView.getViewport().setMaxY(10);
+        graphView.getViewport().setMinY(10);
+        graphView.getViewport().setMaxY(50);
         graphView.getGridLabelRenderer().setHorizontalLabelsColor(Color.WHITE);
         graphView.getGridLabelRenderer().setVerticalLabelsColor(Color.WHITE);
         graphView.getGridLabelRenderer().setVerticalAxisTitle("Temperature/°C");
@@ -231,12 +269,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 Intent a = new Intent("GRAPH_UPDATE");
-                sendBroadcast(a);
+                //sendBroadcast(a);
                 b.postDelayed(this, 100);
             }
         });
         newThread.run();
-        loadWeatherData();
+
     }
     protected final class MyTextView{
         final private TextView myTextView;
@@ -294,7 +332,7 @@ public class MainActivity extends AppCompatActivity {
             }
             else{
                 Intent intent = new Intent(this, MyBtService.class);
-                //startService(intent);
+                startService(intent);
             }
         }
         else if (requestCode == rRequestZoneSetting){
@@ -305,7 +343,13 @@ public class MainActivity extends AppCompatActivity {
         else if (requestCode == rRequestBtScan){
             if (resultCode == RESULT_OK) {
                 Intent intent = new Intent(this, MyBtService.class);
-                //startService(intent);
+                startService(intent);
+            }
+        }
+        else if (requestCode == 9){
+            if (resultCode != RESULT_OK){
+                Toast.makeText(getApplicationContext(), "User denies Bluetooth Access", Toast.LENGTH_SHORT);
+                finish();
             }
         }
     }
@@ -334,7 +378,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]>{
+
+
         @Override
         protected String[] doInBackground(String... strings) {
             if (strings.length == 0){
@@ -351,7 +398,7 @@ public class MainActivity extends AppCompatActivity {
             try{
                 String response = getResponseFromHttpUrl(url);
                 return new String[]{response};
-            } catch (IOException e){
+            } catch (Exception e){
                 e.printStackTrace();
             } return null;
         }
@@ -361,7 +408,51 @@ public class MainActivity extends AppCompatActivity {
             if (strings != null){
                 try {
                     JSONObject newObject = new JSONObject(strings[0]);
-                    String weather = newObject.getString("weather");
+                    JSONArray weather = newObject.getJSONArray("weather");
+                    JSONObject mainWeather = weather.getJSONObject(0);
+                    actualWeather = mainWeather.getString("main");
+                    final String wIcon = mainWeather.getString("icon");
+                    // TODO to implement icon thing
+                    JSONObject getMain = newObject.getJSONObject("main");
+                    humidity = Integer.parseInt(getMain.getString("humidity"));
+                    String humidityString = "Humidity: " + humidity + "%";
+                    humidityView.setText(humidityString);
+                    tempMin = (int)(Float.parseFloat(getMain.getString("temp_min")) - 273.15);
+                    tempMax = (int)(Float.parseFloat(getMain.getString("temp_max")) - 273.15);
+                    String minString = "/"+String.valueOf(tempMin) + "°";
+                    String maxString = String.valueOf(tempMax) + "°";
+                    weatherMax.setText(maxString);
+                    weatherMin.setText(minString);
+                    JSONObject windObject = newObject.getJSONObject("wind");
+                    wind = Float.parseFloat(windObject.getString("speed"));
+                    String windString = "Wind: " + wind + "m/s";
+                    windView.setText(windString);
+                    String imageAddress = "http://openweathermap.org/img/w/" + wIcon + ".png";
+                    class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+                        ImageView bmImage;
+                        public DownloadImageTask(ImageView bmImage) {
+                            this.bmImage = bmImage;
+                        }
+
+                        protected Bitmap doInBackground(String... urls) {
+                            String urldisplay = urls[0];
+                            Bitmap mIcon11 = null;
+                            try {
+                                InputStream in = new java.net.URL(urldisplay).openStream();
+                                mIcon11 = BitmapFactory.decodeStream(in);
+                            } catch (Exception e) {
+                                Log.e("Error", e.getMessage());
+                                e.printStackTrace();
+                            }
+                            return mIcon11;
+                        }
+
+                        protected void onPostExecute(Bitmap result) {
+                            bmImage.setImageBitmap(result);
+                        }
+                    }
+                    new DownloadImageTask(weatherIcon).execute(imageAddress);
+
                     Log.d("weather", "onPostExecute: " + weather);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -373,8 +464,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {super.onStart();}
+    protected void onStart() {
+        super.onStart();
+        final Handler handler = new Handler();
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                if (batteryLife > 0) {
+                    batteryLife--;
+                }
+                progressBar.setProgress(batteryLife);
+                if (batteryLife < 20){
+                    ivBatteryLow.setVisibility(View.VISIBLE);
+                }
+                else{
+                    ivBatteryLow.setVisibility(View.INVISIBLE);
+                }
+                handler.postDelayed(this, 180000);
+            }
+        };
+        Thread thread = new Thread(runnable);
+        thread.run();
+        loadWeatherData();
+    }
 
+    public double toFahrenheit(float celcius){
+        return celcius * 1.8 + 32;
+    }
      private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -383,20 +499,27 @@ public class MainActivity extends AppCompatActivity {
             if ("START_DISCOVERY".equals(action)) {
                 bluetoothAdapter.startDiscovery();
                 Intent startupIntent = new Intent(MainActivity.this, ScanActivity.class);
-                //startActivityForResult(startupIntent, 1);
+                startActivityForResult(startupIntent, 1);
             }
             else if ("CANCEL_DISCOVERY".equals(action)){
                 bluetoothAdapter.cancelDiscovery();
             }
             else if ("TIME_UP".equals(action)){
 
+                timerSet = false;
+                ivTimerOn.setVisibility(View.GONE);
+                ivTimerOff.setVisibility(View.VISIBLE);
             }
 
             else if ("GRAPH_UPDATE".equals(action)){
-                series.appendData(new DataPoint(++axisCount, random.nextInt(10)), false, 100);
-                graphView.getViewport().getMinX(false);
-                graphView.getViewport().setMinX(graphView.getViewport().getMinX(false) + 1);
-                graphView.getViewport().setMaxX(graphView.getViewport().getMaxX(false) + 1);
+                try {
+                    series.appendData(new DataPoint(++axisCount, random.nextInt(10)), false, 2000);
+                    graphView.getViewport().getMinX(false);
+                    graphView.getViewport().setMinX(graphView.getViewport().getMinX(false) + 1);
+                    graphView.getViewport().setMaxX(graphView.getViewport().getMaxX(false) + 1);
+                } catch (IllegalArgumentException e){
+                    axisCount++;
+                }
             }
 
             else if ("UPDATE_BT_STATUS".equals(action)){
@@ -410,6 +533,29 @@ public class MainActivity extends AppCompatActivity {
                     ivBtSearching.setVisibility(View.VISIBLE);
                 }
             }
+            else if ("ENABLE_BT".equals(action)){
+                Intent enableBT = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBT, 9);
+            }
+            else if ("UPDATE_GRAPH".equals(action)){
+                float newData = intent.getFloatExtra("data", 0);
+                try {
+                    series.appendData(new DataPoint(graphView.getViewport().getMaxX(false) + 1 + dataPointOffset, newData), false, 2000);
+                    graphView.getViewport().setMinX(graphView.getViewport().getMinX(false) + 1);
+                    graphView.getViewport().setMaxX(graphView.getViewport().getMaxX(false) + 1);
+                } catch (IllegalArgumentException e){
+                    e.printStackTrace();
+                    dataPointOffset++;
+                }
+            }
+            else if ("UPDATE_TEMPERATURE".equals(action)){
+                if (dTempUnit) {
+                    tvTemperature.setText(String.valueOf(new DecimalFormat("#.#").format(tempVal)));
+                }
+                else{
+                    tvTemperature.setText(String.valueOf(new DecimalFormat("#,#").format(toFahrenheit(tempVal))));
+                }
+            }
 
         }
     };
@@ -418,6 +564,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume(){
         super.onResume();
         loadFile();
+
         bindListeners();
         Intent UpdateProgress = getIntent();
         int mode = UpdateProgress.getIntExtra("Mode", 0);
@@ -471,10 +618,12 @@ public class MainActivity extends AppCompatActivity {
                 if(dTempUnit == true){
                     dTempUnit = false;
                     tempUnit.setText(R.string.Fahrenheit);
+                    tvTemperature.setText(String.valueOf(1.8 * tempVal + 32));
                 }
                 else{
                     dTempUnit = true;
                     tempUnit.setText(R.string.Celsius);
+                    tvTemperature.setText(String.valueOf(tempVal));
                 }
 
             }
@@ -483,17 +632,18 @@ public class MainActivity extends AppCompatActivity {
         applyChanges.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
+
                 Intent sendIntent = new Intent("SEND_DATA");
                 sendIntent.putExtra("data", "n" + stateVal[3] + "," + stateVal[4] + "," + stateVal[5] + " ");
                 sendBroadcast(sendIntent);
-
+/*
                 sendIntent = new Intent("SEND_DATA");
                 sendIntent.putExtra("data", "o" + stateVal[6] + "," + stateVal[7] + "," + stateVal[8] + " ");
                 sendBroadcast(sendIntent);
 
                 sendIntent = new Intent("SEND_DATA");
                 sendIntent.putExtra("data", "p" + stateVal[9] + "," + stateVal[10] + "," + stateVal[11] + " ");
-                sendBroadcast(sendIntent);
+                sendBroadcast(sendIntent);*/
             }
         });
 
@@ -577,46 +727,45 @@ public class MainActivity extends AppCompatActivity {
                     timerAlert.show();
 
                 }
-                else{
-                    final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
-                    LayoutInflater inflater = getLayoutInflater();
-                    View dialogView = inflater.inflate(R.layout.timer_set, (RelativeLayout) findViewById(R.id.coordinatorLayout), false);
-                    final MyTextView tvDownCounter = new MyTextView((TextView)dialogView.findViewById(R.id.count_down));
-                    aBuilder.setTitle("Time Till Heater Turns off:");
-                    aBuilder.setView(dialogView);
-                    aBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialogInterface) {
-                            tvDownCounter.unregisterReceiver();
-                        }
-                    });
-                    aBuilder.setNeutralButton("Reset", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Log.d("Reset Timer", "onClick: ");
-                            Intent setTimerIntent = new Intent();
-                            setTimerIntent.setAction("RESET_TIMER");
-                            sendBroadcast(setTimerIntent);
-                            tvDownCounter.unregisterReceiver();
-                            timerSet = false;
-                        }
-                    });
-                    timerAlert = aBuilder.create();
-                    timerAlert.show();
-                }
-
             }
         });
-
-
+        ivBtSearching.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    Intent resetBtIntent = new Intent();
+                    resetBtIntent.setAction("RESET_BT");
+                    sendBroadcast(resetBtIntent);
+                }
+                return true;
+            }
+        });
+        ivBtConnected.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    Intent resetBtIntent = new Intent();
+                    resetBtIntent.setAction("RESET_BT");
+                    sendBroadcast(resetBtIntent);
+                }
+                return true;
+            }
+        });
         ivTimerOn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 final AlertDialog.Builder aBuilder = new AlertDialog.Builder(MainActivity.this);
                 LayoutInflater inflater = getLayoutInflater();
                 View dialogView = inflater.inflate(R.layout.timer_set, (RelativeLayout) findViewById(R.id.coordinatorLayout), false);
+                final MyTextView tvDownCounter = new MyTextView((TextView)dialogView.findViewById(R.id.count_down));
                 aBuilder.setTitle("Time Till Heater Turns off:");
                 aBuilder.setView(dialogView);
+                aBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        tvDownCounter.unregisterReceiver();
+                    }
+                });
                 aBuilder.setNeutralButton("Reset", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
@@ -663,7 +812,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
+        progressBar.setOnProgressBarListener(new OnProgressBarListener() {
+            @Override
+            public void onProgressChange(int current, int max) {
+                if (current <= 20 && !lowBatRegion){
+                    Intent notificationIntent = new Intent();
+                    notificationIntent.setAction("BAT_LOW");
+                    sendBroadcast(notificationIntent);
+                    lowBatRegion = true;
+                    ivBatteryLow.setVisibility(View.VISIBLE);
+                }
+                else if (current > 20){
+                    ivBatteryLow.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
         mode2Switch.setOncheckListener(new Switch.OnCheckListener() {
             @Override
             public void onCheck(Switch aSwitch, boolean isChecked) {
@@ -695,6 +858,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (lowerLayer.getVisibility() != View.VISIBLE){
+
                     lowerLayer.setVisibility(View.VISIBLE);
                     setViewGroupClickable(lowerLayer, true);
                     TranslateAnimation animate = new TranslateAnimation(0, 0, lowerLayer.getHeight(), 0);
@@ -704,6 +868,7 @@ public class MainActivity extends AppCompatActivity {
 
                 }
                 else{
+
                     TranslateAnimation animate = new TranslateAnimation(0, 0, 0,lowerLayer.getHeight());
                     animate.setDuration(500);
                     animate.setFillAfter(true);
@@ -803,6 +968,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
     public void writeJsonStream(DataOutputStream out) {
         try {
             Log.d("Writing json", "writeJsonStream: ");
@@ -870,7 +1036,7 @@ public class MainActivity extends AppCompatActivity {
         if (newMode == 0){
             currentMode = 0;
             Intent sendIntent = new Intent("SEND_DATA");
-            sendIntent.putExtra("data", "t0,0,0 ");
+            sendIntent.putExtra("data", "q0,0,0 ");
             sendBroadcast(sendIntent);
         }
         else if (newMode != currentMode){
@@ -878,7 +1044,6 @@ public class MainActivity extends AppCompatActivity {
                 Intent sendIntent = new Intent("SEND_DATA");
                 sendIntent.putExtra("data", "q" + String.valueOf(newMode) + ",0,0 ");
                 sendBroadcast(sendIntent);
-
         }
     }
 }

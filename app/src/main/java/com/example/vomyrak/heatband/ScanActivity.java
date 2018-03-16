@@ -47,6 +47,8 @@ public class ScanActivity extends AppCompatActivity {
     private Button mRefresh;
     private int REQUEST_COURSE_PERMISSION = 10;
     private int result = 0;
+    protected static final String arduino = "98:D3:32:11:36:49";
+    protected static final String iphone = "7C:50:49:44:E1:0F";
     private Handler scanTimeHandle= new Handler();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,8 +66,8 @@ public class ScanActivity extends AppCompatActivity {
             @Override
             public void onListItemClick(int clickedItemIndex) {
                 try {
-                    //Method method = discoveredDevices.get(clickedItemIndex).getClass().getMethod("createBond", (Class[]) null);
-                    //method.invoke(discoveredDevices.get(clickedItemIndex), (Object[]) null);
+                    Method method = discoveredDevices.get(clickedItemIndex).getClass().getMethod("createBond", (Class[]) null);
+                    method.invoke(discoveredDevices.get(clickedItemIndex), (Object[]) null);
                     setResult(RESULT_OK);
                     result = RESULT_OK;
                 } catch (Exception e){
@@ -115,7 +117,7 @@ public class ScanActivity extends AppCompatActivity {
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 Log.d("DEVICELIST", "Bluetooth device found\n");
                 final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (device.getAddress().equals("98:D3:32:11:36:49")){
+                if (device.getAddress().equals(arduino)){
                     bluetoothAdapter.cancelDiscovery();
                     mProgressDlg.dismiss();
                     final AlertDialog.Builder builder = new AlertDialog.Builder(ScanActivity.this);
@@ -137,8 +139,6 @@ public class ScanActivity extends AppCompatActivity {
                             .setNegativeButton("No", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
-                                    ScanActivity.this.setResult(-2);
-                                    finish();
                                 }
                             });
                     mAlertDlg = builder.create();
@@ -168,6 +168,7 @@ public class ScanActivity extends AppCompatActivity {
     private void scanningRoutine(){
         try {
             bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
             bluetoothAdapter.startDiscovery();
             mProgressDlg = new ProgressDialog(this);
             mProgressDlg.setMessage("Scanning...");
@@ -186,10 +187,16 @@ public class ScanActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     bluetoothAdapter.cancelDiscovery();
-                    mProgressDlg.dismiss();
+                    try {
+                        if (mProgressDlg.isShowing()) {
+                            mProgressDlg.dismiss();
+                        }
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
             }, 10000);
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

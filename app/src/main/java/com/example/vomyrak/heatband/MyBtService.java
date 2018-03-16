@@ -32,7 +32,7 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
-
+import static com.example.vomyrak.heatband.MainActivity.dTempUnit;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -74,7 +74,7 @@ public class MyBtService extends IntentService {
     protected WritingThread writingThread;
     protected Thread listeningThread;
     protected Thread timerThread;
-
+    protected CountDownTimer countDownTimer;
     protected static final String mConfig = "Config";
     protected static int serviceId;
     protected static final String CHANNEL_ID = "Heatband";
@@ -107,7 +107,19 @@ public class MyBtService extends IntentService {
             }
             else if (action.equals("RESET_TIMER")){
                 timerThread.interrupt();
+                countDownTimer.cancel();
                 timerThread = null;
+            }
+            else if (action.equals("BAT_LOW")){
+                NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
+                        .setContentTitle("Heat Band")
+                        .setSmallIcon(R.drawable.logo2_small)
+                        .setContentText(String.format("Your device battery is running low. Connect to power as soon as possible!"))
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                mNotificationManager.notify(1, mBuilder.build());
+            }
+            else if (action.equals("RESET_BT")){
+                resetBluetooth(true);
             }
         }
     };
@@ -133,10 +145,12 @@ public class MyBtService extends IntentService {
             listeningThread.run();
             IntentFilter btServiceFilter = new IntentFilter();
             btServiceFilter.addAction("SEND_DATA");
+            btServiceFilter.addAction("BAT_LOW");
             btServiceFilter.addAction("START_TIMER");
             btServiceFilter.addAction("RESET_TIMER");
             btServiceFilter.addAction("END_SERVICE");
             btServiceFilter.addAction("TURN_OFF");
+            btServiceFilter.addAction("RESET_BT");
             MyBtService.this.registerReceiver(mReceiver, btServiceFilter);
         }
 
@@ -165,11 +179,6 @@ public class MyBtService extends IntentService {
     public int onStartCommand(Intent intent, int flags, int startId){
         Log.v(TAG, "In onstartCommand");
         registerNotification();
-        mNotificationManager.notify(1, new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
-                .setSmallIcon(R.drawable.cooking_on_fire)
-                .setContentTitle("Heat Band")
-                .setContentText("Low Battery")
-                .setPriority(NotificationCompat.PRIORITY_HIGH).build());
 
         serviceId = startId;
 
@@ -188,7 +197,7 @@ public class MyBtService extends IntentService {
         if (bluetoothAdapter == null){
             Toast.makeText(getApplicationContext(), "Bluetooth not supported", Toast.LENGTH_SHORT).show();
         }
-        resetBluetooth();
+        resetBluetooth(false);
     }
 
     public void sendBtData(byte[] data){
@@ -235,18 +244,20 @@ public class MyBtService extends IntentService {
         }
     }
 
-    protected void resetBluetooth(){
-        bluetoothAdapter = null;
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (!bluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            enableBtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            getApplicationContext().startActivity(enableBtIntent);
+    protected void resetBluetooth(boolean fullReset){
+        if (fullReset) {
+            bluetoothAdapter = null;
+            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            if (!bluetoothAdapter.isEnabled()) {
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                enableBtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getApplicationContext().startActivity(enableBtIntent);
+            }
         }
         if (bluetoothSocket == null) {
 
                 try {
-                    if(lastDeviceAddress.equals(null)) {
+                    if(lastDeviceAddress == null) {
                         pairedDevices = bluetoothAdapter.getBondedDevices();
                         if (pairedDevices.size() > 0) {
                             for (BluetoothDevice bt : pairedDevices) {
@@ -288,7 +299,7 @@ public class MyBtService extends IntentService {
 
     private void establishConnection() throws IOException{
         connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
-        bluetoothSocket = connectedDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
+        bluetoothSocket = connectedDevice.createRfcommSocketToServiceRecord(myUUID);
         bluetoothSocket.connect();
         if (bluetoothAdapter.isDiscovering()) {
             bluetoothAdapter.cancelDiscovery();
@@ -335,10 +346,19 @@ public class MyBtService extends IntentService {
                 batteryLife = Integer.parseInt(dataArray[0]); // range is [0,1000]
                 return true;
             case 'g':
-                zoneTemperature[0] = Integer.parseInt(dataArray[0]) / 10 - 10;
-                zoneTemperature[1] = Integer.parseInt(dataArray[1]) / 10 - 10;
-                zoneTemperature[2] = Integer.parseInt(dataArray[2]) / 10 - 10;
-                tempVal = (zoneTemperature[0] + zoneTemperature[1] + zoneTemperature[2]) / 3;
+                zoneTemperature[0] = Integer.parseInt(dataArray[0]) / 100;
+                zoneTemperature[1] = Integer.parseInt(dataArray[1]) / 100;
+                zoneTemperature[2] = Integer.parseInt(dataArray[2]) / 100;
+                tempVal = (zoneTemperature[0] + zoneTemperature[1] + zoneTemperature[2]) / (float) 3;
+
+
+                Intent tempIntent = new Intent();
+                tempIntent.setAction("UPDATE_TEMPERATURE");
+                sendBroadcast(tempIntent);
+                Intent graphIntent = new Intent();
+                graphIntent.setAction("UPDATE_GRAPH");
+                graphIntent.putExtra("data", tempVal);
+                sendBroadcast(graphIntent);
                 return true;
             case 'h':
                 NotificationCompat.Builder notifySwitchOff = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
@@ -439,7 +459,6 @@ public class MyBtService extends IntentService {
     }
 
     public class TimerThread implements Runnable{
-        CountDownTimer countDownTimer;
         long millisInFuture, interval;
         TimerThread(long millisInFuture, long interval){
             this.millisInFuture = millisInFuture;
@@ -467,9 +486,11 @@ public class MyBtService extends IntentService {
                     Intent countdownIntent = new Intent();
                     countdownIntent.setAction("TIME_UP");
                     sendBroadcast(countdownIntent);
+
                 }
             };
             countDownTimer.start();
+
         }
 
     }
