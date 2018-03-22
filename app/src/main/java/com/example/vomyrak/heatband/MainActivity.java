@@ -61,6 +61,11 @@ import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+/**
+ * Created by VomyraK on 07/03/2018.
+ * Open Weather API from https://openweathermap.org/
+ * Graphing library GraphView by appsthatmatter from https://github.com/appsthatmatter/GraphView
+ */
 
 public class MainActivity extends AppCompatActivity {
 
