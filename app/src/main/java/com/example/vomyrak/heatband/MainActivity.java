@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
     protected ConstraintLayout lowerLayer;
     protected ImageView weatherIcon;
     protected TextView windView;
-
+    protected TextView tvTempOffsetValue;
 
     //Create constant strings
     protected static final String mSettingStateVals = "stateVals";
@@ -229,7 +229,8 @@ public class MainActivity extends AppCompatActivity {
         lowerLayer = findViewById(R.id.lower_layer);
         weatherIcon = findViewById(R.id.weather_icon);
         windView = findViewById(R.id.weather_wind);
-        for (int i = 0; i < PLOT_ARRAY_SIZE; i++){
+        tvTempOffsetValue = findViewById(R.id.temp_offset_text);
+        for (int i = 0; i < tempHistory.length; i++){
             DataPoint tempData = new DataPoint(i, 0);
             tempHistory[i] = tempData;
             axisCount++;
