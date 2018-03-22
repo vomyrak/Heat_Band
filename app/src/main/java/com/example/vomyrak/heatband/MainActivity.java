@@ -645,14 +645,14 @@ public class MainActivity extends AppCompatActivity {
                 Intent sendIntent = new Intent("SEND_DATA");
                 sendIntent.putExtra("data", "n" + stateVal[3] + "," + stateVal[4] + "," + stateVal[5] + " ");
                 sendBroadcast(sendIntent);
-/*
+
                 sendIntent = new Intent("SEND_DATA");
                 sendIntent.putExtra("data", "o" + stateVal[6] + "," + stateVal[7] + "," + stateVal[8] + " ");
                 sendBroadcast(sendIntent);
 
                 sendIntent = new Intent("SEND_DATA");
                 sendIntent.putExtra("data", "p" + stateVal[9] + "," + stateVal[10] + "," + stateVal[11] + " ");
-                sendBroadcast(sendIntent);*/
+                sendBroadcast(sendIntent);
             }
         });
 
