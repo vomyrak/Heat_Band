@@ -1,20 +1,20 @@
 package com.example.vomyrak.heatband;
 
 import android.bluetooth.BluetoothDevice;
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
 import static com.example.vomyrak.heatband.ScanActivity.discoveredDevices;
 /**
  * Created by VomyraK on 07/03/2018.
+ * This java document is used to create recycler view as specified by Android API
+ * for displaying list with many items.
  */
+
+
+
 
 public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.AdapterViewHolder> {
 
@@ -25,9 +25,11 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.AdapterVie
         void onListItemClick(int clickedItemIndex);
     }
 
+    //Create device adapter
     public DeviceAdapter(RecyclerViewClickListener listener){
         mListener = listener;
     }
+
 
     public class AdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         public final TextView mDeviceName;
@@ -54,8 +56,6 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.AdapterVie
         holder.mDeviceName.setText(displayedName);
         holder.mDeviceAddress.setText(displayedAddress);
     }
-
-
 
     @Override
     public AdapterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
