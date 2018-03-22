@@ -1,51 +1,29 @@
 package com.example.vomyrak.heatband;
 
-import android.app.Activity;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
-import android.os.Process;
-import android.os.ResultReceiver;
-import android.os.health.ServiceHealthStats;
-import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
-import static com.example.vomyrak.heatband.MainActivity.dTempUnit;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
-import java.util.List;
-import java.util.Queue;
-import java.util.Random;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
 
-import javax.net.ssl.HandshakeCompletedEvent;
 
 import static com.example.vomyrak.heatband.MainActivity.DEVICE_ADDRESS;
 import static com.example.vomyrak.heatband.MainActivity.DEVICE_NAME;
@@ -53,12 +31,10 @@ import static com.example.vomyrak.heatband.MainActivity.batteryLife;
 import static com.example.vomyrak.heatband.MainActivity.bluetoothAdapter;
 import static com.example.vomyrak.heatband.MainActivity.bluetoothSocket;
 import static com.example.vomyrak.heatband.MainActivity.connectedDevice;
-import static com.example.vomyrak.heatband.MainActivity.mBatteryLife;
 import static com.example.vomyrak.heatband.MainActivity.myUUID;
 import static com.example.vomyrak.heatband.MainActivity.pairedDevices;
 import static com.example.vomyrak.heatband.MainActivity.mOutgoingData;
 import static com.example.vomyrak.heatband.MainActivity.zoneTemperature;
-import static com.example.vomyrak.heatband.MainActivity.rRequestBt;
 import static com.example.vomyrak.heatband.MainActivity.stateVal;
 import static com.example.vomyrak.heatband.MainActivity.tempVal;
 import static com.example.vomyrak.heatband.MainActivity.currentMode;
@@ -66,6 +42,8 @@ import static com.example.vomyrak.heatband.MainActivity.lastDeviceAddress;
 import static com.example.vomyrak.heatband.MainActivity.individualCellBattery;
 
 public class MyBtService extends IntentService {
+
+    //Declaring variables
     protected static final String TAG ="MyBtService";
     protected InputStream btIn;
     protected OutputStream btOut;
@@ -75,12 +53,11 @@ public class MyBtService extends IntentService {
     protected Thread listeningThread;
     protected Thread timerThread;
     protected CountDownTimer countDownTimer;
-    protected static final String mConfig = "Config";
     protected static int serviceId;
     protected static final String CHANNEL_ID = "Heatband";
     private NotificationManager mNotificationManager;
 
-
+    //Declare broadcast receiver
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -124,6 +101,7 @@ public class MyBtService extends IntentService {
         }
     };
 
+    //Encode input data into a message
     private Message getMessage(String data){
         Bundle aBundle = new Bundle();
         aBundle.putString(mOutgoingData, data);
@@ -131,6 +109,8 @@ public class MyBtService extends IntentService {
         newMessage.setData(aBundle);
         return newMessage;
     }
+
+    //Running separate thread for bluetooth functions
     public class BluetoothThread implements Runnable{
         int serviceId;
         BluetoothThread(int serviceId){
@@ -156,11 +136,12 @@ public class MyBtService extends IntentService {
 
     }
 
+    //Constructor
     public MyBtService() {
         super(TAG);
     }
 
-
+    //Check Bluetooth device UUID to recognise identifiable
     private boolean matchedUUID(BluetoothDevice bt){
         for (ParcelUuid uuid : bt.getUuids()){
             if (uuid.getUuid().toString().equals(myUUID.toString())) {
@@ -173,7 +154,6 @@ public class MyBtService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent){
     }
-
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
@@ -200,6 +180,7 @@ public class MyBtService extends IntentService {
         resetBluetooth(false);
     }
 
+    //Send bluetooth data
     public void sendBtData(byte[] data){
         try {
             btOut.write(data);
@@ -208,8 +189,14 @@ public class MyBtService extends IntentService {
             e.printStackTrace();
         } catch (NullPointerException f){
             Toast.makeText(getApplicationContext(), "No successful connection" , Toast.LENGTH_SHORT).show();
+            Intent newIntent = new Intent();
+            newIntent.setAction("NOTIFY_BT_DISCONNECTION");
+            sendBroadcast(newIntent);
+            resetBluetooth(true);
         }
     }
+
+    //Receive bluetooth data
     public String receiveBtData(byte[] buffer) throws IOException, NullPointerException{
         if (btIn.available() > 0) {
             while (btIn.read() != (int)'?'){}
@@ -221,6 +208,7 @@ public class MyBtService extends IntentService {
         }
     }
 
+    //Bluetooth incoming information parsing
     protected String getBtData(String data){
         if (data.length() < 3){
             return "";
@@ -244,6 +232,7 @@ public class MyBtService extends IntentService {
         }
     }
 
+    //Reset bluetooth functionality
     protected void resetBluetooth(boolean fullReset){
         if (fullReset) {
             bluetoothAdapter = null;
@@ -296,7 +285,7 @@ public class MyBtService extends IntentService {
         }
     }
 
-
+    //Start socket connection
     private void establishConnection() throws IOException{
         connectedDevice = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS);
         bluetoothSocket = connectedDevice.createRfcommSocketToServiceRecord(myUUID);
@@ -312,6 +301,8 @@ public class MyBtService extends IntentService {
         updateBtStatusIntent.putExtra("Connected?", true);
         sendBroadcast(updateBtStatusIntent);
     }
+
+    //Decode bluetooth incoming message
     protected boolean decodeMessage(String data){
         char opcode = data.charAt(0);
         data = data.substring(1);
@@ -396,8 +387,7 @@ public class MyBtService extends IntentService {
         }
     }
 
-
-
+    //Declare listening thread
     public class ListeningThread implements Runnable{
         Handler handler = new Handler();
         ListeningThread(){
@@ -435,6 +425,8 @@ public class MyBtService extends IntentService {
 
         }
     }
+
+    //Declare Writing thread
     public class WritingThread extends Thread{
         Handler handler;
 
@@ -458,6 +450,7 @@ public class MyBtService extends IntentService {
         }
     }
 
+    //Declare timer thread
     public class TimerThread implements Runnable{
         long millisInFuture, interval;
         TimerThread(long millisInFuture, long interval){
@@ -494,6 +487,8 @@ public class MyBtService extends IntentService {
         }
 
     }
+
+    //Register for system notification to be created
     private void registerNotification(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Create the NotificationChannel, but only on API 26+ because

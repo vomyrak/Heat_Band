@@ -13,7 +13,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -65,22 +64,21 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 
 public class MainActivity extends AppCompatActivity {
 
-    //Create (3 preferences + 1 temp) * 3 bytes array for storing temperature info data
+    //Declaration of various data variables
     protected static int[] stateVal = new int[12];
-    //Create a byte for battery info
     protected static int batteryLife = 100;
-    //Create an integer for seekbar progress;
     protected static int seekBarProgress = 0;
+    protected static final int PLOT_ARRAY_SIZE = 500;
     protected static float tempVal;
     protected static int currentMode;
     protected static int[] zoneTemperature = new int[3];
     protected static int[] individualCellBattery = new int[3];
-    protected static DataPoint[] tempHistory  = new DataPoint[1000];
+    protected static DataPoint[] tempHistory  = new DataPoint[PLOT_ARRAY_SIZE];
     protected LineGraphSeries<DataPoint> series;
     protected static int axisCount = -1;
     protected static int dataPointOffset = 0;
-    //Create shared preference
-    //Create UI elements
+
+    //Declaration of UI elements
     protected NumberProgressBar progressBar;
     protected TextView tvBatteryLife;
     protected TextView tvTemperature;
@@ -140,9 +138,8 @@ public class MainActivity extends AppCompatActivity {
     //Temperature Unit
     protected static boolean dTempUnit = true;
     protected static boolean timerSet = false;
-    protected final Random random = new Random();
 
-    //Temperature
+    //Weather related variables
     protected static String actualWeather;
     protected static int humidity;
     protected static float wind;
@@ -169,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
         newFilter.addAction("ENABLE_BT");
         newFilter.addAction("UPDATE_GRAPH");
         newFilter.addAction("UPDATE_TEMPERATURE");
+        newFilter.addAction("NOTIFY_BT_DISCONNECTION");
         this.registerReceiver(mReceiver, newFilter);
         if (savedInstanceState != null){
             //If saved instance is present, get value from previously set instance state
@@ -190,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                     for (int i = 0; i < stateVal.length; i++){
                         stateVal[i] = 0;
                     }
-                    seekBarProgress = 10;
+                    seekBarProgress = 0;
                     batteryLife = 78;
 
                     Intent startupIntent = new Intent(this, ScanActivity.class);
@@ -231,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
         lowerLayer = findViewById(R.id.lower_layer);
         weatherIcon = findViewById(R.id.weather_icon);
         windView = findViewById(R.id.weather_wind);
-        for (int i = 0; i < tempHistory.length; i++){
+        for (int i = 0; i < PLOT_ARRAY_SIZE; i++){
             DataPoint tempData = new DataPoint(i, 0);
             tempHistory[i] = tempData;
             axisCount++;
@@ -239,10 +237,10 @@ public class MainActivity extends AppCompatActivity {
         series = new LineGraphSeries<>(tempHistory);
         graphView.getViewport().setXAxisBoundsManual(true);
         graphView.getViewport().setMinX(0);
-        graphView.getViewport().setMaxX(30);
-        graphView.getViewport().setYAxisBoundsManual(true);
-        graphView.getViewport().setMinY(10);
-        graphView.getViewport().setMaxY(50);
+        graphView.getViewport().setMaxX(PLOT_ARRAY_SIZE);
+        graphView.getViewport().setYAxisBoundsManual(false);
+        graphView.getViewport().setMinY(0);
+        graphView.getViewport().setMaxY(10);
         graphView.getGridLabelRenderer().setHorizontalLabelsColor(Color.WHITE);
         graphView.getGridLabelRenderer().setVerticalLabelsColor(Color.WHITE);
         graphView.getGridLabelRenderer().setVerticalAxisTitle("Temperature/°C");
@@ -252,30 +250,20 @@ public class MainActivity extends AppCompatActivity {
         graphView.getGridLabelRenderer().setGridColor(Color.WHITE);
         graphView.getGridLabelRenderer().setHorizontalLabelsVisible(false);
         graphView.addSeries(series);
-        series.setThickness(8);
+        series.setThickness(3);
         series.setColor(Color.WHITE);
         series.setDrawDataPoints(false);
         series.setDrawBackground(true);
         series.setBackgroundColor(getResources().getColor(R.color.graph_transparent));
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(10);
+        paint.setStrokeWidth(3);
         paint.setColor(Color.WHITE);
         series.setCustomPaint(paint);
-        final Handler b = new Handler();
-
-        Thread newThread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                Intent a = new Intent("GRAPH_UPDATE");
-                //sendBroadcast(a);
-                b.postDelayed(this, 100);
-            }
-        });
-        newThread.run();
 
     }
+
+    //Auxilliary function for text display
     protected final class MyTextView{
         final private TextView myTextView;
         private BroadcastReceiver mBrocastReceiver = new BroadcastReceiver() {
@@ -302,6 +290,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    //Write error message and terminate programme
     protected void errorMessage(String error){
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MainActivity.this  );
         alertBuilder.setTitle("Notification")
@@ -321,6 +311,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //Specify action in response to specific result code
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
@@ -354,11 +345,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //Load remote weather data
     private void loadWeatherData(){
         String currentLocation = BASE_API;
         new FetchWeatherTask().execute(currentLocation);
     }
 
+    //Fetch remote weather data
     public static String getResponseFromHttpUrl(URL url) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
@@ -377,8 +370,6 @@ public class MainActivity extends AppCompatActivity {
             urlConnection.disconnect();
         }
     }
-
-
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]>{
 
 
@@ -488,9 +479,12 @@ public class MainActivity extends AppCompatActivity {
         loadWeatherData();
     }
 
+    //Conversion from celcius to Fahrenheit
     public double toFahrenheit(float celcius){
         return celcius * 1.8 + 32;
     }
+
+    //Declaratoin of broadcast receiver
      private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -511,16 +505,6 @@ public class MainActivity extends AppCompatActivity {
                 ivTimerOff.setVisibility(View.VISIBLE);
             }
 
-            else if ("GRAPH_UPDATE".equals(action)){
-                try {
-                    series.appendData(new DataPoint(++axisCount, random.nextInt(10)), false, 2000);
-                    graphView.getViewport().getMinX(false);
-                    graphView.getViewport().setMinX(graphView.getViewport().getMinX(false) + 1);
-                    graphView.getViewport().setMaxX(graphView.getViewport().getMaxX(false) + 1);
-                } catch (IllegalArgumentException e){
-                    axisCount++;
-                }
-            }
 
             else if ("UPDATE_BT_STATUS".equals(action)){
                 boolean isConnected = intent.getBooleanExtra("Connected?", false);
@@ -540,7 +524,7 @@ public class MainActivity extends AppCompatActivity {
             else if ("UPDATE_GRAPH".equals(action)){
                 float newData = intent.getFloatExtra("data", 0);
                 try {
-                    series.appendData(new DataPoint(graphView.getViewport().getMaxX(false) + 1 + dataPointOffset, newData), false, 2000);
+                    series.appendData(new DataPoint(graphView.getViewport().getMaxX(false) + 1 + dataPointOffset, dTempUnit? newData : toFahrenheit(newData)), false, 2000);
                     graphView.getViewport().setMinX(graphView.getViewport().getMinX(false) + 1);
                     graphView.getViewport().setMaxX(graphView.getViewport().getMaxX(false) + 1);
                 } catch (IllegalArgumentException e){
@@ -555,6 +539,10 @@ public class MainActivity extends AppCompatActivity {
                 else{
                     tvTemperature.setText(String.valueOf(new DecimalFormat("#,#").format(toFahrenheit(tempVal))));
                 }
+            }
+            else if ("NOTIFY_BT_DISCONNECTION".equals(action)){
+                ivBtSearching.setVisibility(View.VISIBLE);
+                ivBtConnected.setVisibility(View.INVISIBLE);
             }
 
         }
@@ -577,11 +565,15 @@ public class MainActivity extends AppCompatActivity {
         }
         requestDeviceSync();
     }
+
+    //Request for device data update
     private void requestDeviceSync(){
         Intent requestIntent = new Intent();
         requestIntent.setAction("SEND_DATA");
         requestIntent.putExtra("data", "m0,0,0 ");
     }
+
+    //Bind user interface elements with function to execute
     private void bindListeners(){
         brMode1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -618,12 +610,23 @@ public class MainActivity extends AppCompatActivity {
                 if(dTempUnit == true){
                     dTempUnit = false;
                     tempUnit.setText(R.string.Fahrenheit);
-                    tvTemperature.setText(String.valueOf(1.8 * tempVal + 32));
+                    tvTemperature.setText(String.valueOf(toFahrenheit(tempVal)));
+                    weatherMax.setText(String.valueOf(toFahrenheit(tempMax)) + "°");
+                    weatherMin.setText("/"+String.valueOf(toFahrenheit(tempMin)) + "°");
+                    weatherMax.setTextSize(26);
+                    weatherMin.setTextSize(17);
+                    graphView.getGridLabelRenderer().setVerticalAxisTitle("Temperature/°F");
                 }
                 else{
                     dTempUnit = true;
                     tempUnit.setText(R.string.Celsius);
                     tvTemperature.setText(String.valueOf(tempVal));
+                    weatherMax.setText(String.valueOf(tempMax) + "°");
+                    weatherMin.setText("/" + String.valueOf(tempMin) + "°");
+                    weatherMax.setTextSize(40);
+                    weatherMin.setTextSize(30);
+                    graphView.getGridLabelRenderer().setVerticalAxisTitle("Temperature/°C");
+
                 }
 
             }
@@ -897,11 +900,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     @Override
     protected void onPause(){
         super.onPause();
     }
 
+    //Activate/Deactivate UI elements
     protected void setViewGroupClickable(View view, boolean clickable){
         view.setEnabled(clickable);
         if (view instanceof ViewGroup){
@@ -926,8 +931,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy(){
         super.onDestroy();
         this.unregisterReceiver(mReceiver);
+        if (bluetoothSocket != null) {
+            try {
+                bluetoothSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
+    //Temporarily save current device setting when paused
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -936,7 +949,7 @@ public class MainActivity extends AppCompatActivity {
         outState.putInt(mSeekBarProgress, seekBarProgress);
     }
 
-    //Json Handler
+    //Json Settings Handler
     public void saveFile(){
         try {
             String path = getFilesDir().toString() + mJsonFile;
@@ -966,9 +979,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
-
-
     public void writeJsonStream(DataOutputStream out) {
         try {
             Log.d("Writing json", "writeJsonStream: ");
@@ -1002,7 +1012,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-    //Json Parser
     public void readJsonStream(DataInputStream in){
         try{
             String inputString = in.readUTF();
@@ -1032,6 +1041,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //Set hardware mode
     public void changeActiveMode(int newMode){
         if (newMode == 0){
             currentMode = 0;

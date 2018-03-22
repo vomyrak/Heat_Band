@@ -161,7 +161,7 @@
                 android:id="@+id/weather_icon"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                android:layout_marginStart="28dp"
+                android:layout_marginStart="17dp"
                 android:contentDescription="@string/Weather_icon"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -170,9 +170,10 @@
 
             <TextView
                 android:id="@+id/weather_max"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_marginStart="20dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginTop="20dp"
                 android:text="7°"
                 android:textColor="#ffffff"
                 android:textSize="40sp"
@@ -182,8 +183,9 @@
 
             <TextView
                 android:id="@+id/weather_min"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:layout_marginTop="35dp"
                 android:text="/3°"
                 android:textColor="#ffffff"
                 android:textSize="30sp"

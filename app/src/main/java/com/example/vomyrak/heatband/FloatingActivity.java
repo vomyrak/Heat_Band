@@ -11,7 +11,6 @@ import com.gc.materialdesign.views.ButtonRectangle;
 
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 
-import static com.example.vomyrak.heatband.MainActivity.bluetoothSocket;
 import static com.example.vomyrak.heatband.MainActivity.stateVal;
 import static com.example.vomyrak.heatband.MainActivity.seekBarProgress;
 
@@ -26,6 +25,7 @@ public class FloatingActivity extends AppCompatActivity {
     protected int[] data = new int[3];
     protected int mode;
 
+    //Limit data range sent to hardware
     int setBoundary(int num) {
         if (num > 255) {
             return 255;
@@ -34,6 +34,8 @@ public class FloatingActivity extends AppCompatActivity {
         }
         return num;
     }
+
+    //Apply temperature change offset
     int applyOffset(int num){
         return setBoundary(num * 51 + seekBarProgress * 10);
     }

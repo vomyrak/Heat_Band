@@ -2,7 +2,6 @@ package com.example.vomyrak.heatband;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -12,8 +11,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -28,14 +25,7 @@ import android.widget.Button;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-
-import static android.bluetooth.BluetoothDevice.ACTION_PAIRING_REQUEST;
-import static com.example.vomyrak.heatband.MainActivity.DEVICE_NAME;
-import static com.example.vomyrak.heatband.MainActivity.DEVICE_ADDRESS;
 import static com.example.vomyrak.heatband.MainActivity.bluetoothAdapter;
-import static com.example.vomyrak.heatband.MainActivity.bluetoothSocket;
-import static com.example.vomyrak.heatband.MainActivity.myUUID;
-import static com.example.vomyrak.heatband.MainActivity.lastDeviceAddress;
 
 public class ScanActivity extends AppCompatActivity {
 
@@ -48,7 +38,6 @@ public class ScanActivity extends AppCompatActivity {
     private int REQUEST_COURSE_PERMISSION = 10;
     private int result = 0;
     protected static final String arduino = "98:D3:32:11:36:49";
-    protected static final String iphone = "7C:50:49:44:E1:0F";
     private Handler scanTimeHandle= new Handler();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +98,7 @@ public class ScanActivity extends AppCompatActivity {
         }
     }
 
-
+    //Register for broadcast receiver
     private final BroadcastReceiver bReciever = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -152,10 +141,12 @@ public class ScanActivity extends AppCompatActivity {
         }
     };
 
+    //Add discovered device fro display
     private void addItemForDisplay(BluetoothDevice device){
         mDeviceAdapter.setDeviceData(device);
     }
 
+    //Check device user permission to use location
     private void checkLocationPermission(){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED){
@@ -165,6 +156,7 @@ public class ScanActivity extends AppCompatActivity {
         }
     }
 
+    //Routine for scanning discoverable bluetooth devices for pairing
     private void scanningRoutine(){
         try {
             bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
