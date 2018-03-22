@@ -73,19 +73,19 @@ public class MainActivity extends AppCompatActivity {
     protected static int axisCount = -1;
     //Create shared preference
     //Create UI elements
-    protected NumberProgressBar progressBar;
+    protected NumberProgressBar progressBar;    //https://github.com/daimajia/NumberProgressBar
     protected TextView tvBatteryLife;
     protected TextView tvTemperature;
-    protected ButtonRectangle brMode1;
+    protected ButtonRectangle brMode1;          //https://github.com/vajro/MaterialDesignLibrary
     protected ButtonRectangle brMode2;
     protected ButtonRectangle brMode3;
-    protected ImageView ivBtConnected;
+    protected ImageView ivBtConnected;          //https://github.com/google/material-design-icons
     protected ImageView ivBtSearching;
     protected ImageView applyChanges;
     protected ImageView ivTimerOn;
     protected ImageView ivTimerOff;
     protected TextView tempUnit;
-    protected DiscreteSeekBar seekBar;
+    protected DiscreteSeekBar seekBar;          //https://github.com/AnderWeb/discreteSeekBar
     protected ImageView ivBatteryLow;
     protected ImageView ivBatteryCharging;
     protected Switch mode1Switch;
